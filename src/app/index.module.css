@@ -1,0 +1,67 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 20px;
+  row-gap: 30px;
+
+  background-color: #efefef;
+}
+
+.searchInput {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #000;
+  border-radius: 30px;
+  border-color: #d9d9d9;
+  height: 55px;
+  background-color: #fff;
+}
+
+.searchInput input {
+  border: none;
+  width: 70%;
+  height: 95%;
+}
+
+.register {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 20px;
+  background-color: #ba3b3b;
+  color: white;
+
+  height: 118px;
+}
+
+.register p {
+  font-size: 20px;
+  /* font-weight: bold; */
+}
+
+.recievedSchedule {
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+.recievedSchedule h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #746c70;
+}
+
+.recievedSchedule ul {
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+
+  border-radius: 10px;
+  background-color: #fff;
+
+  padding: 20px;
+}
