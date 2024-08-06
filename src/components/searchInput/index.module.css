@@ -1,16 +1,60 @@
 .searchInput {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 2px solid #000;
-    border-radius: 30px;
-    border-color: var(--color-grey);
-    height: 55px;
-    background-color: var(--color-white);
-  }
-  
-  .searchInput input {
-    border: none;
-    width: 70%;
-    height: 95%;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #000;
+  border-radius: 30px;
+  border-color: var(--color-grey);
+  height: 55px;
+  background-color: var(--color-white);
+}
+
+.searchInput input {
+  border: none;
+  width: 70%;
+  height: 95%;
+}
+
+.additionalUI {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  gap: 30px;
+  background-color: var(--color-lightGrey);
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-greyText);
+  margin-bottom: 1rem;
+}
+
+.category ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.category li {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background-color: var(--color-pink);
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.hotItems ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hotItems li {
+  padding : 1rem;
+  color: var(--color-pink);
+  border-bottom: 3px solid var(--color-grey);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
