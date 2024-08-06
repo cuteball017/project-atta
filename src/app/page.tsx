@@ -1,17 +1,13 @@
 import Image from "next/image";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
+import SearchInput from "@/components/searchInput/searchInput";
 
 export default function Home() {
   return (
     <>
       <div className={styles.container}>
-        <div className={styles.searchInput}>
-          <label>
-            <Image src="/search.png" alt="search" width={45} height={45} />
-          </label>
-          <input type="text" placeholder="取得物をさがす"></input>
-        </div>
+        <SearchInput />
         <div className={styles.register}>
           <p>取得物を登録する</p>
           <Image src="/camera-white.svg" alt="camera" width={45} height={45} />

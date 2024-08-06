@@ -1,0 +1,16 @@
+.searchInput {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #000;
+    border-radius: 30px;
+    border-color: var(--color-grey);
+    height: 55px;
+    background-color: var(--color-white);
+  }
+  
+  .searchInput input {
+    border: none;
+    width: 70%;
+    height: 95%;
+  }
