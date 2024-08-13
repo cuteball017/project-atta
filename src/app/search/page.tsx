@@ -30,6 +30,7 @@ export default function Home() {
             <li>財布</li>
             <li>時計</li>
             <li>眼鏡</li>
+            <li>鍵</li>
             <li>携帯電話</li>
             <li>その他</li>
           </ul>
