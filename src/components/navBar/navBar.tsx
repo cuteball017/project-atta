@@ -28,13 +28,15 @@ function NavBar() {
           <div>一覧</div>
         </li>
         <li>
-          <Image
-            src="/notification.svg"
-            alt="notification"
-            width={45}
-            height={45}
-          />
+          <Link href="/notification">
+            <Image
+              src="/notification.svg"
+              alt="notification"
+              width={45}
+              height={45}
+            />
           <div>通知</div>
+          </Link>
         </li>
       </ul>
     </div>
