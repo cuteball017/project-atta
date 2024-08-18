@@ -16,3 +16,11 @@
   npm i
   ```
   でパッケージをインストール！（じゃないと動かないです）
+
+# env変数
+.env.localという名前のファイルを作成し、そこに環境変数を入れる。
+```
+NEXT_PUBLIC_SUPABASE_URL=XXXXX
+NEXT_PUBLIC_SUPABASE_ANON_KEY=XXXXX
+```
+具体的な変数は聞いてね
