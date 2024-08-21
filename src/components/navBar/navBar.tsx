@@ -20,8 +20,10 @@ function NavBar() {
           </Link>
         </li>
         <li>
+          <Link href="/register">
           <Image src="/camera.svg" alt="camera" width={45} height={45} />
           <div>登録</div>
+          </Link>
         </li>
         <li>
           <Image src="/list.svg" alt="list" width={45} height={45} />
