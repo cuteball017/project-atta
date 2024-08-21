@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Webcam from "react-webcam";
 
 const videoConstraints = {
@@ -12,6 +13,9 @@ const videoConstraints = {
 const WebCamCapture: React.FC = () => {
   const webcamRef = useRef<Webcam>(null);
   const [url, setUrl] = useState<string | null>(null);
+  const [picId, setPicId] = useState<string | null>(null);
+  const router = useRouter();
+
   const capture = useCallback(() => {
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
@@ -20,6 +24,7 @@ const WebCamCapture: React.FC = () => {
   }, [webcamRef]);
 
   const register = async () => {
+
     if (url) {
       const blob = atob(url.replace(/^.*,/, ""));
       let buffer = new Uint8Array(blob.length);
@@ -37,6 +42,11 @@ const WebCamCapture: React.FC = () => {
       });
       if (response.ok) {
         alert("登録しました");
+        const { data } = await response.json();
+        const fileNameWithoutExtension = data.path.replace(/\.jpg$/, ""); // .jpgを除去
+        setPicId(fileNameWithoutExtension);
+        router.push(`/register/${fileNameWithoutExtension}`);
+
       } else {
         alert("登録に失敗しました");
       }
