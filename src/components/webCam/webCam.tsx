@@ -7,7 +7,7 @@ import Webcam from "react-webcam";
 const videoConstraints = {
   width: 360,
   height: 360,
-  facingMode: "user",
+  facingMode: "environment",
 };
 
 const WebCamCapture: React.FC = () => {
