@@ -26,8 +26,10 @@ function NavBar() {
           </Link>
         </li>
         <li>
-          <Image src="/list.svg" alt="list" width={45} height={45} />
-          <div>一覧</div>
+          <Link href="/product_list">
+            <Image src="/list.svg" alt="list" width={45} height={45} />
+            <div>一覧</div>
+          </Link>
         </li>
         <li>
           <Link href="/notification">
