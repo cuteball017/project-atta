@@ -4,6 +4,7 @@
     bottom: 0;
     z-index: 100;
     background-color: #EFEFEF;
+    text-align: center;
 }
 
 .navBar ul{
@@ -18,4 +19,8 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.navBar a{
+    text-decoration: none;
 }
