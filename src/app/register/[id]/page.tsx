@@ -1,7 +1,8 @@
 "use client";
-import { on } from "events";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./index.module.css";
 
 interface Params {
   id: string;
@@ -14,6 +15,8 @@ function Page({ params }: { params: Params }) {
   const featureRef = useRef<HTMLInputElement>(null);
   const colorRef = useRef<HTMLInputElement>(null);
   const otherRef = useRef<HTMLInputElement>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     fetch(`/api/img?id=${params.id}`)
@@ -38,40 +41,50 @@ function Page({ params }: { params: Params }) {
 
     if (response.ok) {
       alert("登録しました");
+      router.push("/");
     } else {
       alert("登録に失敗しました");
+      router.push("/");
     }
-  }
-
-
+  };
 
   return (
     <>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className={styles.form}>
         {imgUrl && (
-          <Image src={imgUrl} width={360} height={360} alt="Product Image" />
+          <Image
+            src={imgUrl}
+            width={240}
+            height={240}
+            alt="Product Image"
+            className={styles.img}
+          />
         )}
-        <div>
-            <label htmlFor="name">Name</label>
+        <div className={styles.inputContainer}>
+          <div className={styles.inputBox}>
+            <label htmlFor="name">名称</label>
             <input type="text" id="name" ref={nameRef} />
-        </div>
-        <div>
-            <label htmlFor="brand">Brand</label>
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="brand">ブランド名</label>
             <input type="text" id="brand" ref={brandRef} />
-        </div>
-        <div>
-            <label htmlFor="color">Color</label>
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="color">色</label>
             <input type="text" id="color" ref={colorRef} />
-        </div>
-        <div>
-            <label htmlFor="feature">Feature</label>
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="feature">特徴</label>
             <input type="text" id="feature" ref={featureRef} />
-        </div>
-        <div>
-            <label htmlFor="other">Other</label>
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="other">その他</label>
             <input type="text" id="other" ref={otherRef} />
+          </div>
         </div>
-        <button type="submit">Register</button>
+        <button className={styles.button} type="submit">
+          Register
+        </button>
       </form>
     </>
   );

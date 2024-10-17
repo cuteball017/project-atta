@@ -1,0 +1,133 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: var(--color-lightGrey);
+}
+
+.heading {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--color-pink);
+  margin-bottom: 20px;
+}
+
+.searchInput {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 2px solid var(--color-grey);
+  border-radius: 30px;
+  background-color: var(--color-white);
+  margin-bottom: 20px;
+}
+
+.searchInput input {
+  width: 100%;
+  border: none;
+  font-size: 1.2rem;
+  outline: none;
+}
+
+.filterButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filterButtons button {
+  padding: 10px 20px;
+  border: 1px solid var(--color-grey);
+  border-radius: 20px;
+  background-color: var(--color-white);
+  cursor: pointer;
+}
+
+.filterButtons button.active {
+  background-color: var(--color-pink);
+  color: var(--color-white);
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.itemCard {
+  background-color: var(--color-grey);
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.itemCard p {
+  margin: 10px 0 0 0;
+  font-size: 1rem;
+  color: var(--color-black);
+}
+
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  text-align: center;
+  max-width: 400px;
+  background-color: var(--color-white);
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.modalCloseButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modalImage {
+  width: 100%;
+  height: 200px;
+  background-color: var(--color-grey);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.modalContent p {
+  margin: 10px 0;
+  font-size: 1rem;
+}
+
+.completeButton {
+  width: 90%;
+  padding: 10px 20px;
+  border: 1px solid var(--color-pink);
+  border-radius: 20px;
+  background-color: var(--color-white);
+  color: var(--color-pink);
+  text-align: center;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.nav{
+  padding: auto;
+}

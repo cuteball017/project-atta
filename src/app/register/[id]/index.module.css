@@ -1,0 +1,64 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  row-gap: 20px;
+}
+
+.inputContainer {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+}
+
+.inputBox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.inputBox label {
+  width: 80px; /* ラベルの固定幅を設定 */
+  text-align: left;
+  margin-right: 10px; /* ラベルと入力フィールドの間にスペースを追加 */
+}
+
+.inputBox input {
+  flex: 1; /* 入力フィールドが残りのスペースを占めるように設定 */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.inputBox input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
+}
+
+.button {
+  padding: 10px 20px;
+  border: 1px solid #ff69b4; /* ピンク色のボーダー */
+  border-radius: 5px;
+  background-color: #ff69b4; /* ピンク色の背景 */
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+
+.button:hover {
+  background-color: #ff1493; /* 濃いピンク色の背景 */
+  border-color: #ff1493; /* 濃いピンク色のボーダー */
+  box-shadow: 0 0 5px rgba(255, 20, 147, 0.5); /* 濃いピンク色のシャドウ */
+}
+
+.button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 105, 180, 0.5); /* ピンク色のシャドウ */
+}

@@ -102,6 +102,7 @@ section {
 }
 body {
   line-height: 1;
+  height: 100%;
 }
 ol,
 ul {
@@ -131,4 +132,14 @@ table {
   --color-greyIcon: #343330;
   --color-greyText: #746C70;
   --color-black: #000;
+}
+
+html {
+  max-width: 500px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-lightGrey);
 }
