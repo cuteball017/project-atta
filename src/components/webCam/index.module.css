@@ -1,0 +1,49 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.cameraButton {
+  margin-top: 20px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border-color: var(--color-pink);
+  color: var(--color-pink);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.buttonLists {
+    display: flex;
+    justify-content: center;
+    column-gap: 20px;
+}
+
+.button {
+  padding: 10px 20px;
+  border: 1px solid #ff69b4; /* ピンク色のボーダー */
+  border-radius: 5px;
+  background-color: #ff69b4; /* ピンク色の背景 */
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+
+.button:hover {
+  background-color: #ff1493; /* 濃いピンク色の背景 */
+  border-color: #ff1493; /* 濃いピンク色のボーダー */
+  box-shadow: 0 0 5px rgba(255, 20, 147, 0.5); /* 濃いピンク色のシャドウ */
+}
+
+.button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 105, 180, 0.5); /* ピンク色のシャドウ */
+}

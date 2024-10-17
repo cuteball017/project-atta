@@ -3,6 +3,7 @@ import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Webcam from "react-webcam";
+import styles from "./index.module.css";
 
 const videoConstraints = {
   width: 360,
@@ -24,7 +25,6 @@ const WebCamCapture: React.FC = () => {
   }, [webcamRef]);
 
   const register = async () => {
-
     if (url) {
       const blob = atob(url.replace(/^.*,/, ""));
       let buffer = new Uint8Array(blob.length);
@@ -46,7 +46,6 @@ const WebCamCapture: React.FC = () => {
         const fileNameWithoutExtension = data.path.replace(/\.jpg$/, ""); // .jpgを除去
         setPicId(fileNameWithoutExtension);
         router.push(`/register/${fileNameWithoutExtension}`);
-
       } else {
         alert("登録に失敗しました");
       }
@@ -57,41 +56,49 @@ const WebCamCapture: React.FC = () => {
     <>
       {!url && (
         <>
-          <div>
-            <Webcam
-              audio={false}
-              width={360}
-              height={360}
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              videoConstraints={videoConstraints}
-            />
+          <div className={styles.container}>
+            <div className={styles.cameraUI}>
+              <Webcam
+                audio={false}
+                width={240}
+                height={240}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                videoConstraints={videoConstraints}
+              />
+            </div>
+            <button onClick={capture} className={styles.button}>
+              撮影!
+            </button>
           </div>
-          <button onClick={capture}>撮影!</button>
         </>
       )}
 
       {url && (
         <>
-          <div>撮影した写真</div>
-          <div>
-            <Image src={url} alt="Screenshot" width={360} height={360} />
-          </div>
-          <div>
-            <button
-              onClick={() => {
-                setUrl(null);
-              }}
-            >
-              撮り直す
-            </button>
-            <button
-              onClick={() => {
-                register();
-              }}
-            >
-              登録
-            </button>
+          <div className={styles.container}>
+            <div className={styles.title}>撮影した写真</div>
+            <div className={styles.img}>
+              <Image src={url} alt="Screenshot" width={360} height={360} />
+            </div>
+            <div className={styles.buttonLists}>
+              <button
+                onClick={() => {
+                  setUrl(null);
+                }}
+                className={styles.button}
+              >
+                撮り直す
+              </button>
+              <button
+                onClick={() => {
+                  register();
+                }}
+                className={styles.button}
+              >
+                登録
+              </button>
+            </div>
           </div>
         </>
       )}
