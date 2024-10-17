@@ -1,46 +1,53 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
 import SearchInput from "@/components/searchInput/searchInput";
 
+interface Product {
+  id: number;
+  name: string;
+  brand: string;
+  color: string;
+  feature: string;
+  other: string;
+  img_url: string;
+}
+
 export default function Home() {
-  const [showUI, setShowUI] = useState(false);
+  // const [showUI, setShowUI] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    fetch("/api/productList")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data.data);
+      });
+  }, []);
   return (
     <>
       <div className={styles.container}>
-        <SearchInput showUI={showUI} setShowUI={setShowUI} />
+        {/* <SearchInput showUI={showUI} setShowUI={setShowUI} /> */}
 
-        {!showUI && (
-          <>
-            <div className={styles.register}>
-              <p>取得物を登録する</p>
-              <Image
-                src="/camera-white.svg"
-                alt="camera"
-                width={45}
-                height={45}
-              />
-            </div>
-            <div className={styles.recievedSchedule}>
-              <h1 className={styles.heading}>本日のお渡し予定</h1>
-              <ul>
-                <li>No.10 財布</li>
-                <li>No.1 時計</li>
-              </ul>
-            </div>
-            <div className={styles.achievementRate}>
-              <h1 className={styles.heading}>今月の取得物</h1>
-              <div className={styles.forCenter}>
-                <div className={styles.circle}>
-                  <p className={styles.rate}>50%</p>
-                  <p className={styles.total}>1000件</p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+          <ul className={styles.productLists}>
+            {products.map((product) => (
+              <li key={product.id} className={styles.productItem}>
+                <Image
+                  src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${product.img_url}`}
+                  alt="Product Image"
+                  width={100}
+                  height={100}
+                  className={styles.productImage}
+                />
+                <div className={styles.item}>名称:{product.name}</div>
+                {/* <div>{product.brand}</div>
+                <div>{product.color}</div> */}
+                <div className={styles.item}>特徴:{product.feature}</div>
+                <div className={styles.item}>その他:{product.other}</div>
+              </li>
+            ))}
+          </ul>
       </div>
 
       <NavBar />

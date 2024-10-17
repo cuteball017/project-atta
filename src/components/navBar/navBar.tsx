@@ -14,21 +14,9 @@ function NavBar() {
           </Link>
         </li>
         <li>
-          <Link href="/search">
-            <Image src="/search.png" alt="search" width={45} height={45} />
-            <div>検索</div>
-          </Link>
-        </li>
-        <li>
           <Link href="/register">
           <Image src="/camera.svg" alt="camera" width={45} height={45} />
           <div>登録</div>
-          </Link>
-        </li>
-        <li>
-          <Link href="/product_list">
-            <Image src="/list.svg" alt="list" width={45} height={45} />
-            <div>一覧</div>
           </Link>
         </li>
         <li>
