@@ -19,7 +19,7 @@ export default function Home() {
   // const [showUI, setShowUI] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => {
-    fetch("/api/productList")
+    fetch("/api/productList", { cache: "no-cache" })
       .then((res) => res.json())
       .then((data) => {
         setProducts(data.data);
