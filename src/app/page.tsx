@@ -5,7 +5,7 @@ import useSWR from "swr";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((res) => res.json());
 interface Product {
   id: number;
   name: string;
