@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import useSWR from "swr";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
-import SearchInput from "@/components/searchInput/searchInput";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 interface Product {
   id: number;
   name: string;
@@ -15,23 +16,32 @@ interface Product {
   img_url: string;
 }
 
+
+
 export default function Home() {
   // const [showUI, setShowUI] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  useEffect(() => {
-    fetch("/api/productList", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(data.data);
-      });
-  }, []);
+  // const [products, setProducts] = useState<Product[]>([]);
+  // useEffect(() => {
+  //   fetch("/api/productList", { cache: "no-store" })
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       setProducts(data.data);
+  //     });
+  // }, []);
+
+  const { data, error } = useSWR("/api/productList", fetcher, { refreshInterval: 5000 });
+
+  if (error) return <div>Failed to load</div>;
+  if (!data) return <div>Loading...</div>;
+
+  const products = data.data;
   return (
     <>
       <div className={styles.container}>
         {/* <SearchInput showUI={showUI} setShowUI={setShowUI} /> */}
 
           <ul className={styles.productLists}>
-            {products.map((product) => (
+            {products.map((product: Product) => (
               <li key={product.id} className={styles.productItem}>
                 <Image
                   src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${product.img_url}`}
