@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
+export const fetchCache = 'force-no-store'
 
 const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((res) => res.json());
 interface Product {
