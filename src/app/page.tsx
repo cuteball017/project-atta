@@ -21,28 +21,34 @@ interface Product {
 
 export default function Home() {
   // const [showUI, setShowUI] = useState(false);
-  // const [products, setProducts] = useState<Product[]>([]);
-  // useEffect(() => {
-  //   fetch("/api/productList", { cache: "no-store" })
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       setProducts(data.data);
-  //     });
-  // }, []);
-
-  const pathname = usePathname();
-  const { data, error } = useSWR("/api/productList", fetcher, { refreshInterval: 5000 });
-
+  const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => {
-    if (data) {
-      console.log("Fetched data:", data);
-    }
-  }, [data, pathname]);
+    fetch("/api/productList", { 
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+      },
+     })
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data.data);
+      });
+  }, []);
 
-  if (error) return <div>Failed to load</div>;
-  if (!data) return <div>Loading...</div>;
+  // const pathname = usePathname();
+  // const { data, error } = useSWR("/api/productList", fetcher, { refreshInterval: 5000 });
 
-  const products = data.data;
+  // useEffect(() => {
+  //   if (data) {
+  //     console.log("Fetched data:", data);
+  //   }
+  // }, [data, pathname]);
+
+  // if (error) return <div>Failed to load</div>;
+  // if (!data) return <div>Loading...</div>;
+
+  // const products = data.data;
   return (
     <>
       <div className={styles.container}>
