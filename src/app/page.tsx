@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
@@ -29,7 +30,14 @@ export default function Home() {
   //     });
   // }, []);
 
+  const pathname = usePathname();
   const { data, error } = useSWR("/api/productList", fetcher, { refreshInterval: 5000 });
+
+  useEffect(() => {
+    if (data) {
+      console.log("Fetched data:", data);
+    }
+  }, [data, pathname]);
 
   if (error) return <div>Failed to load</div>;
   if (!data) return <div>Loading...</div>;
