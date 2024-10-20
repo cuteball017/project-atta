@@ -23,17 +23,23 @@ export default function Home() {
   // const [showUI, setShowUI] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => {
-    fetch("/api/productList", { 
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
-      },
-     })
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(data.data);
-      });
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/productList", { 
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+          },
+        });
+        const result = await response.json();
+        setProducts(result.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   // const pathname = usePathname();
