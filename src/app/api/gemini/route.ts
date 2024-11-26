@@ -4,7 +4,6 @@ import { gemini } from "@/utils/gemini";
 
 export async function POST(req: Request, res: NextResponse) {
   const { imageUrl } = await req.json();
-  const vision = gemini;
 
   const response = await fetch(imageUrl);
   const buffer = await response.arrayBuffer();
@@ -25,7 +24,7 @@ export async function POST(req: Request, res: NextResponse) {
     }),
   ];
 
-  const gemini_res = await vision.invoke(input2);
+  const gemini_res = await gemini.invoke(input2);
   console.log(gemini_res);
 
   const nameMatch = gemini_res.text.match(/name:\s*([^\n]+)/);
