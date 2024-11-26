@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage } from "@langchain/core/messages";
 import { useRouter } from "next/navigation";
-import dotenv from "dotenv";
+import { gemini } from "@/utils/gemini";
 import styles from "./index.module.css";
 
-dotenv.config();
+const { NEXT_PUBLIC_GOOGLE_API_KEY } = process.env;
 
 interface Params {
   id: string;
@@ -50,11 +49,7 @@ function Page({ params }: { params: Params }) {
 
   const analyzeImageWithGemini = async (imageUrl: string) => {
     try {
-      const vision = new ChatGoogleGenerativeAI({
-        modelName: "gemini-1.5-pro",
-        maxOutputTokens: 2048,
-        apiKey: '',
-      });
+      const vision = gemini;
 
       const response = await fetch(imageUrl);
       const buffer = await response.arrayBuffer();
