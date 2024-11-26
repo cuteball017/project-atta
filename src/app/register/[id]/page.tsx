@@ -49,39 +49,51 @@ function Page({ params }: { params: Params }) {
 
   const analyzeImageWithGemini = async (imageUrl: string) => {
     try {
-      const vision = gemini;
+      // const vision = gemini;
 
-      const response = await fetch(imageUrl);
-      const buffer = await response.arrayBuffer();
-      const base64Image = Buffer.from(buffer).toString("base64");
+      // const response = await fetch(imageUrl);
+      // const buffer = await response.arrayBuffer();
+      // const base64Image = Buffer.from(buffer).toString("base64");
 
-      const input2 = [
-        new HumanMessage({
-          content: [
-            {
-              type: "text",
-              text: "画像の特徴を分析し、次の形式で結果を出力してください。 name: color: brand: feature: ",
-            },
-            {
-              type: "image_url",
-              image_url: `data:image/png;base64,${base64Image}`,
-            },
-          ],
-        }),
-      ];
+      // const input2 = [
+      //   new HumanMessage({
+      //     content: [
+      //       {
+      //         type: "text",
+      //         text: "画像の特徴を分析し、次の形式で結果を出力してください。 name: color: brand: feature: ",
+      //       },
+      //       {
+      //         type: "image_url",
+      //         image_url: `data:image/png;base64,${base64Image}`,
+      //       },
+      //     ],
+      //   }),
+      // ];
 
-      const res = await vision.invoke(input2);
-      console.log(res);
+      // const res = await vision.invoke(input2);
+      // console.log(res);
 
-      const nameMatch = res.text.match(/name:\s*([^\n]+)/);
-      const brandMatch = res.text.match(/brand:\s*([^\n]+)/);
-      const colorMatch = res.text.match(/color:\s*([^\n]+)/);
-      const featureMatch = res.text.match(/feature:\s*([^\n]+)/);
+      // const nameMatch = res.text.match(/name:\s*([^\n]+)/);
+      // const brandMatch = res.text.match(/brand:\s*([^\n]+)/);
+      // const colorMatch = res.text.match(/color:\s*([^\n]+)/);
+      // const featureMatch = res.text.match(/feature:\s*([^\n]+)/);
 
-      if (nameRef.current) nameRef.current.value = nameMatch ? nameMatch[1].trim() : "";
-      if (brandRef.current) brandRef.current.value = brandMatch ? brandMatch[1].trim() : "";
-      if (colorRef.current) colorRef.current.value = colorMatch ? colorMatch[1].trim() : "";
-      if (featureRef.current) featureRef.current.value = featureMatch ? featureMatch[1].trim() : "";
+      // if (nameRef.current) nameRef.current.value = nameMatch ? nameMatch[1].trim() : "";
+      // if (brandRef.current) brandRef.current.value = brandMatch ? brandMatch[1].trim() : "";
+      // if (colorRef.current) colorRef.current.value = colorMatch ? colorMatch[1].trim() : "";
+      // if (featureRef.current) featureRef.current.value = featureMatch ? featureMatch[1].trim() : "";
+
+      const res = await fetch(`/api/gemini`, {
+        method: "POST",
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      const data = await res.json();
+
+      if (nameRef.current) nameRef.current.value = data.name;
+      if (brandRef.current) brandRef.current.value = data.brand;
+      if (colorRef.current) colorRef.current.value = data.color;
+      if (featureRef.current) featureRef.current.value = data.feature;
 
       setLoading(false);
     } catch (err) {
