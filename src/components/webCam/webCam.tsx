@@ -6,8 +6,8 @@ import Webcam from "react-webcam";
 import styles from "./index.module.css";
 
 const videoConstraints = {
-  width: 360,
-  height: 360,
+  width: 960,
+  height: 960,
   facingMode: "environment",
 };
 
@@ -60,8 +60,8 @@ const WebCamCapture: React.FC = () => {
             <div className={styles.cameraUI}>
               <Webcam
                 audio={false}
-                width={240}
-                height={240}
+                width={320}
+                height={320}
                 ref={webcamRef}
                 screenshotFormat="image/jpeg"
                 videoConstraints={videoConstraints}
