@@ -7,6 +7,19 @@
     background-color: #EFEFEF;
     text-align: center;
 }
+/* 
+🔹 네비게이션 바 스타일 수정 (고정된 위치)
+.navBar {
+    position: fixed;
+    width: 100%;
+    max-width: 500px;
+    bottom: 0;
+    z-index: 100;
+    background-color: #EFEFEF;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 10px;
+  } */
 
 .navBar ul{
     display: flex;

@@ -1,4 +1,253 @@
+/* 🔹 네비게이션 바와 겹치지 않도록 컨테이너 여백 추가 */
 .container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 80px; /* 네비게이션 바와 겹치지 않도록 여백 추가 */
+}
+
+/* 🔹 상품 목록이 네비게이션 바에 가리지 않도록 마진 추가 */
+.productLists {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 한 줄에 3개씩 */
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 100px; /* 네비게이션 바 공간 확보 */
+}
+
+/* 🔹 필터 컨테이너 (검색, 카테고리, 날짜 입력을 한 줄 정렬) */
+.filterContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* 🔹 검색 바 스타일 */
+.searchBar {
+  flex: 2;
+  min-width: 200px;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.searchBar:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+/* 🔹 필터 라벨 스타일 (카테고리, 날짜 라벨) */
+.filterLabel {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 🔹 카테고리 선택 드롭다운 */
+.selectBox {
+  flex: 1;
+  min-width: 150px;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.selectBox:hover {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+/* 🔹 날짜 선택 필드 스타일 */
+.dateFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateInput {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+}
+
+.dateInput:focus {
+  border-color: #007bff;
+  box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+}
+
+/* 🔹 날짜 사이 구분 기호 (~) */
+.dateSeparator {
+  font-size: 18px;
+  font-weight: bold;
+  color: #555;
+}
+
+
+/* 🔹 반응형 (태블릿: 한 줄에 2개) */
+@media (max-width: 1024px) {
+  .productLists {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 🔹 반응형 (모바일: 한 줄에 1개) */
+/* @media (max-width: 768px) {
+  .productLists {
+    grid-template-columns: repeat(1, 1fr);
+  }
+} */
+
+/* 🔹 개별 상품 스타일 */
+.productItem {
+  padding: 12px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.productItem:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔹 상품 이미지 스타일 */
+.productImage {
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* 🔹 상품 정보 스타일 */
+.item {
+  font-size: 14px;
+  color: #333;
+  margin-top: 5px;
+}
+
+/* 🔹 로딩 및 에러 메시지 */
+.loading,
+.error {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: red;
+  margin-top: 20px;
+}
+
+/* 🔹 모달 배경 (어두운 오버레이) */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 🔹 모달 창 (가로 75%, 세로 60%) */
+.modal {
+  background: white;
+  width: 75%;
+  height: 60vh;
+  max-width: 1000px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto; /* 내용이 많을 경우 스크롤 가능 */
+}
+
+/* 🔹 모달 내용 (상품 정보) */
+.modalContent {
+  font-size: 16px;
+  text-align: left;
+  margin-top: 10px;
+  width: 90%;
+}
+
+/* 🔹 모달 내 상품 이미지 */
+.modalImage {
+  border-radius: 10px;
+  margin-bottom: 10px;
+  max-width: 90%;
+  height: auto;
+}
+
+/* 🔹 X 닫기 버튼 */
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: black;
+}
+
+.closeButton:hover {
+  color: red;
+}
+
+/* 🔹 모달 애니메이션 (부드럽게 등장) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 🔹 반응형 설정 */
+@media (max-width: 1024px) {
+  .modal {
+    width: 85%;
+    height: 70vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    height: 80vh;
+  }
+
+  .modalContent {
+    font-size: 14px;
+  }
+}
+
+
+
+/* .container {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -31,3 +280,54 @@
 .item {
   font-size: 12px;
 }
+
+
+
+
+
+
+.searchBar {
+  width: 95%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.filterButton {
+  padding: 10px;
+  font-size: 14px;
+  margin: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.applyButton, .closeButton {
+  margin: 10px;
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+} */

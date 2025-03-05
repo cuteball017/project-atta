@@ -1,4 +1,279 @@
-.searchInput {
+/* ==================================
+   全体のコンテナや基本スタイル
+================================== */
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 申請追加ボタン */
+.addButton {
+  width: 100%;
+  max-width: 500px;
+  padding: 14px;
+  font-size: 18px;
+  background-color: #E95C66;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 15px;
+}
+.addButton:hover {
+  background-color: #d94c58;
+}
+
+/* 検索バー */
+.searchBar {
+  width: 100%;
+  max-width: 500px;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease-in-out;
+  margin-bottom: 15px;
+}
+.searchBar:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+/* 日付フィルタ */
+.dateFilter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+.dateFilter label {
+  font-weight: bold;
+  text-align: left;
+  width: 100%;
+}
+.dateInput {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+}
+.dateInput:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+/* リスト表示 */
+.listGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  width: 100%;
+}
+.notificationItem {
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+  min-height: 120px;
+}
+.notificationItem:hover {
+  transform: scale(1.05);
+}
+
+/* 返却済みアイテム */
+.returnedItem {
+  background-color: #e1f7e7;
+}
+.returnCompletedLabel {
+  color: green;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* ローディング・エラー */
+.loading {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #E95C66;
+  margin-top: 20px;
+}
+.error {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: red;
+  margin-top: 20px;
+}
+
+/* ==================================
+   モーダルのスタイル
+================================== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  width: 90%;
+  max-width: 600px;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+/* モーダルアニメーション */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -55%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.modal h2 {
+  margin-bottom: 20px;
+  color: #E95C66;
+}
+.modal p {
+  margin: 12px 0;
+  line-height: 1.5;
+}
+.productImage {
+  margin-bottom: 16px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* 入力フィールド */
+.modal input {
+  width: calc(100% - 20px);
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+}
+.modal input:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+/* ボタンの配置 */
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px; /* ボタン間の横幅 */
+  margin-top: 24px; /* ボタン上マージン */
+}
+
+/* モーダル内のボタン */
+.modalButton {
+  padding: 14px 18px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #E95C66;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: auto;
+  min-width: 100px;
+  text-align: center;
+  margin-top: 8px; /* 個別ボタンにも余白 */
+}
+.modalButton:hover {
+  background-color: #d94c58;
+}
+
+/* 閉じるボタンを別の色にしたいなら 
+.closeButton {
+  background-color: #444;
+  color: #fff;
+}
+*/
+
+/* すでに返却されている場合 */
+.alreadyReturned {
+  color: green;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+/* 確認文言 */
+.confirmMessage {
+  font-weight: bold;
+  margin: 24px 0;
+  line-height: 1.6;
+}
+
+/* ---------- レスポンシブ対応 ---------- */
+@media (max-width: 1024px) {
+  .listGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .modal {
+    width: 70%;
+  }
+}
+@media (max-width: 768px) {
+  .listGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .modal {
+    width: 80%;
+  }
+  .modal input {
+    font-size: 14px;
+  }
+}
+
+
+
+
+
+
+
+
+/* .searchInput {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -104,4 +379,4 @@
   font-size: 1rem;
   color: var(--color-greyText);
   margin-top: 2rem;
-}
+} */
