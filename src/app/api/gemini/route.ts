@@ -14,7 +14,7 @@ export async function POST(req: Request, res: NextResponse) {
       content: [
         {
           type: "text",
-          text: "画像の特徴を分析し、次の形式で結果を出力してください。 name: color: brand: feature: ",
+          text: "画像の特徴を分析し、次の形式で結果を日本語で出力してください。 name: color: brand: feature: ",
         },
         {
           type: "image_url",

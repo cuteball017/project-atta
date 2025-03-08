@@ -62,3 +62,16 @@
   outline: none;
   box-shadow: 0 0 5px rgba(255, 105, 180, 0.5); /* ピンク色のシャドウ */
 }
+
+
+
+
+
+.selectBox {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}

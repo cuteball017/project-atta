@@ -21,7 +21,9 @@ function Page({ params }: { params: Params }) {
   const brandRef = useRef<HTMLInputElement>(null);
   const colorRef = useRef<HTMLInputElement>(null);
   const featureRef = useRef<HTMLInputElement>(null);
-  const otherRef = useRef<HTMLInputElement>(null);
+  const placeRef = useRef<HTMLInputElement>(null);
+  const categoryRef = useRef<HTMLSelectElement>(null);
+
 
   const router = useRouter();
 
@@ -75,11 +77,13 @@ function Page({ params }: { params: Params }) {
     const brand = brandRef.current?.value;
     const color = colorRef.current?.value;
     const feature = featureRef.current?.value;
-    const other = otherRef.current?.value;
+    const place = placeRef.current?.value;
+    const category = categoryRef.current?.value;
+
 
     const response = await fetch(`/api/register/${params.id}`, {
       method: "POST",
-      body: JSON.stringify({ name, brand, color, feature, other }),
+      body: JSON.stringify({ name, brand, color, feature, place, category}),
     });
 
     if (response.ok) {
@@ -121,8 +125,22 @@ function Page({ params }: { params: Params }) {
             <input type="text" id="feature" ref={featureRef} />
           </div>
           <div className={styles.inputBox}>
-            <label htmlFor="other">場所</label>
-            <input type="text" id="other" ref={otherRef} />
+            <label htmlFor="place">場所</label>
+            <input type="text" id="place" ref={placeRef} />
+          </div>
+          <div className={styles.inputBox}>
+          <label htmlFor="category">カテゴリー</label>
+            <select id="category" ref={categoryRef} className={styles.selectBox}>
+              <option value="イヤホン">イヤホン</option>
+              <option value="スマートフォン">スマートフォン</option>
+              <option value="周辺機器">周辺機器</option>
+              <option value="財布">財布</option>
+              <option value="時計">時計</option>
+              <option value="水筒">水筒</option>
+              <option value="文具">文具</option>
+              <option value="かばん">かばん</option>
+              <option value="衣類">衣類</option>
+            </select>
           </div>
         </div>
         <button className={styles.button} type="submit">
