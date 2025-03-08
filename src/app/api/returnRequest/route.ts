@@ -1,3 +1,4 @@
+// エラーがなかったら消す
 // /api/returnRequest/route.ts (App Router例)
 import { supabase } from "@/utils/supabase";
 import { NextResponse } from "next/server";

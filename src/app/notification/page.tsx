@@ -251,7 +251,7 @@ export default function NotificationPage() {
   const handleReturnComplete = async () => {
     if (!selectedRequest) return;
     try {
-      const res = await fetch("/api/returnRequest", {
+      const res = await fetch("/api/requestList", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
