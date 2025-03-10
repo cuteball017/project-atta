@@ -67,11 +67,11 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // 🔹 검색 및 필터링 기능 (카테고리, 날짜 포함)
+  // 🔹 検索機能
   useEffect(() => {
     let filtered = products;
 
-    // 🔹 검색어 필터 적용
+    // 🔹 基本検索
     if (searchQuery) {
       filtered = filtered.filter((product) =>
         [product.name, product.brand, product.color, product.feature, product.place, product.category]
@@ -79,6 +79,12 @@ export default function Home() {
       );
     }
 
+    // 🔹 カテゴリー検索
+    if (selectedCategory) {
+      filtered = filtered.filter((product) => product.category === selectedCategory);
+    }
+    
+    // 🔹 日付検索
     if (startDate && endDate && startDate === endDate) {
       const start = new Date(`${startDate}T00:00:00Z`);
       const end = new Date(`${endDate}T23:59:59.999Z`);
