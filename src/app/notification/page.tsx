@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import styles from "./index.module.css";
 import NavBar from "@/components/navBar/navBar";
+import SignatureCanvas from "react-signature-canvas";
 
-/** 申請データの型 */
+// リクエストデータの型定義
 interface RequestData {
   id: number;
   applicant: string;
@@ -15,10 +16,11 @@ interface RequestData {
   created_at: string;
   img_url: string;
   product_id: string;
-  return_completed: string; 
+  return_completed: string;
+  sig_url: string;
 }
 
-/** 商品データの型 */
+// 商品データの型定義
 interface ProductData {
   id: number;
   name: string;
@@ -33,15 +35,16 @@ export default function NotificationPage() {
   const [products, setProducts] = useState<ProductData[]>([]);
 
   // 検索・フィルタ用
+  const [filteredProducts, setFilteredProducts] = useState<RequestData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // モーダル管理
+  // モーダル表示制御
   const [showProductModal, setShowProductModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
 
-  // 新規申請用
+  // 新規申請入力用のステート
   const [productId, setProductId] = useState("");
   const [newRequest, setNewRequest] = useState({
     applicant: "",
@@ -49,34 +52,40 @@ export default function NotificationPage() {
     return_completed: "",
   });
 
-  // 選択された request / product
+  // 選択されたリクエストまたは商品
   const [selectedRequest, setSelectedRequest] = useState<RequestData | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
 
-  // ローディング / エラー
+  // ローディング・エラー管理
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 返却処理用 state
+  // 返却処理制御
   const [showReturnConfirmation, setShowReturnConfirmation] = useState(false);
   const [userChoice, setUserChoice] = useState<"" | "はい" | "いいえ">("");
   const [isReturnCompleted, setIsReturnCompleted] = useState(false);
 
+  // 署名画像のプレビューURL
+  const [dataURL, setDataURL] = useState<string | null>(null);
+
+  // SignatureCanvasの参照
+  const padRef = useRef<InstanceType<typeof SignatureCanvas> | null>(null);
+
   // -------------------------------
-  // 初回マウント: リクエスト一覧を取得
+  // 初回マウント時：リクエスト一覧を取得
   // -------------------------------
   useEffect(() => {
     fetchRequests();
   }, []);
 
   // -------------------------------
-  // 検索・日付フィルタ適用
+  // 検索・日付フィルタが変更された時の処理
   // -------------------------------
   useEffect(() => {
     handleSearch();
   }, [searchQuery, startDate, endDate]);
 
-  // リクエスト一覧の取得
+  // リクエスト一覧を取得
   const fetchRequests = async () => {
     try {
       setLoading(true);
@@ -86,15 +95,13 @@ export default function NotificationPage() {
       if (!response.ok) throw new Error("データ取得失敗");
       const data = await response.json();
 
-      // 最新30件
       const sortedData = data.data
         .sort((a: RequestData, b: RequestData) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-        .slice(0, 30);
+        );
 
       setRequests(sortedData);
-      setFilteredRequests(sortedData);
+      setFilteredRequests(sortedData.slice(0, 30));
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
@@ -102,103 +109,91 @@ export default function NotificationPage() {
     }
   };
 
-  // 検索・日付フィルタ
+  // 検索処理
   const handleSearch = () => {
     let filtered = requests;
+    
+    const hasSearch = searchQuery.trim() !== "";
+    const hasDate = startDate !== "" || endDate !== "";
+
+    // 🔹 キーワード検索
     if (searchQuery) {
-      filtered = filtered.filter((req) =>
-        [req.applicant, req.name, req.place, req.feature, req.lost_day].some(
-          (value) => value.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+      filtered = filtered.filter((request) =>
+        [request.id, request.product_id, request.applicant, request.name, request.feature, request.place]
+          .some((value) =>
+            String(value).toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
-    function toUtcRangeFromJst(dateString: string) {
-      const start = new Date(`${dateString}T00:00:00.000+09:00`); 
-      const startUtc = new Date(start.toISOString());
-      const endPart = new Date(`${dateString}T23:59:59.999+09:00`);
-      const endUtc = new Date(endPart.toISOString());
-    
-      return { startUtc, endUtc };
+    // 🔹 日付フィルター
+    if (startDate && endDate && startDate === endDate) {
+      const start = new Date(`${startDate}T00:00:00Z`);
+      const end = new Date(`${endDate}T23:59:59.999Z`);
+      filtered = filtered.filter((request) => {
+        const reqDate = new Date(request.created_at);
+        return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
+      });
+    } else {
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      filtered = filtered.filter((request) => {
+        const reqDate = new Date(request.created_at);
+        return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
+      });
     }
     
-    if (startDate && endDate) {
-      if (startDate === endDate) {
-        const { startUtc, endUtc } = toUtcRangeFromJst(startDate);
-        filtered = filtered.filter((product) => {
-          const utcDate = new Date(product.created_at); 
-          return utcDate >= startUtc && utcDate <= endUtc;
-        });
-      } else {
-        let startUtc = null;
-        let endUtc   = null;
-    
-        if (startDate) {
-          startUtc = toUtcRangeFromJst(startDate).startUtc;
-        }
-        if (endDate) {
-          endUtc   = toUtcRangeFromJst(endDate).endUtc;
-        }
-    
-        filtered = filtered.filter((product) => {
-          const utcDate = new Date(product.created_at);
-          const afterStart = !startUtc || utcDate >= startUtc;
-          const beforeEnd  = !endUtc   || utcDate <= endUtc;
-          return afterStart && beforeEnd;
-        });
-      }
+    if (!hasSearch && !hasDate) {
+      filtered = filtered.slice(0, 30);
     }
-    
-    
-    // if (startDate && endDate && startDate === endDate) {
-    //   const start = new Date(`${startDate}T00:00:00Z`);
-    //   const end = new Date(`${endDate}T23:59:59.999Z`);
-    //   filtered = filtered.filter((req) => {
-    //     const reqDate = new Date(req.created_at);
-    //     return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
-    //   });
-    // }else{
-    //   const start = startDate ? new Date(startDate) : null;
-    //   const end = endDate ? new Date(endDate) : null;
-    //   filtered = filtered.filter((req) => {
-    //     const reqDateUTC = new Date(req.created_at+ 9 * 60 * 60 * 1000);
-    //     const reqDateJST = new Date(reqDateUTC.getTime() + 9 * 60 * 60 * 1000);
-    //     return (start ? reqDateJST >= start : true) && (end ? reqDateJST <= end : true);
-    //   });
-    // }
+
     setFilteredRequests(filtered);
   };
 
-  // 商品ID から商品検索
+  // 商品IDで商品を検索
   const fetchProductById = async () => {
     try {
+      const id = parseInt(productId, 10);
+  
+      if (isNaN(id)) {
+        alert("商品IDが正しくありません");
+        return;
+      }
+  
+      let productList = products;
+  
+      // 商品一覧が未取得ならフェッチ
       if (!products || products.length === 0) {
-        const resp = await fetch("/api/productList");
+        const resp = await fetch("/api/productList", {
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
+        });
         if (!resp.ok) throw new Error("商品データ取得失敗");
         const result = await resp.json();
-        setProducts(result.data);
+        productList = result.data;
+        setProducts(productList); // ステートに保存
       }
-
-      // 最新の products から目的の商品を探す
-      const found = (products.length > 0 ? products : [])
-        .find(p => p.id === parseInt(productId, 10));
-
+  
+      // 該当商品を検索
+      const found = productList.find((p) => p.id === id);
+  
+      console.log("🔍 入力ID:", productId, "| found:", found);
+  
       if (found) {
         setSelectedProduct(found);
         setShowProductModal(false);
+        setProductId("");
         setShowRequestModal(true);
       } else {
         alert("該当の商品IDが見つかりません");
       }
     } catch (err) {
-      console.error(err);
+      console.error("商品ID検索エラー:", err);
     }
   };
 
-  // 新規申請を登録
+  // 新しい申請を登録
   const handleRegisterRequest = async () => {
     if (!selectedProduct) return;
-
     try {
       const requestData = {
         product_id: selectedProduct.id,
@@ -224,7 +219,7 @@ export default function NotificationPage() {
     }
   };
 
-  // 詳細モーダル閉じる
+  // 詳細モーダルを閉じる
   const closeDetailModal = () => {
     setSelectedRequest(null);
     setShowReturnConfirmation(false);
@@ -232,22 +227,21 @@ export default function NotificationPage() {
     setIsReturnCompleted(false);
   };
 
-  // 返却処理フロー
+  // 返却処理開始
   const handleStartReturnProcess = () => {
     setShowReturnConfirmation(true);
     setUserChoice("");
     setIsReturnCompleted(false);
   };
-
   const handleYes = () => {
     setUserChoice("はい");
   };
-
   const handleNo = () => {
     setUserChoice("いいえ");
     setShowReturnConfirmation(false);
   };
 
+  // 返却完了処理
   const handleReturnComplete = async () => {
     if (!selectedRequest) return;
     try {
@@ -264,16 +258,48 @@ export default function NotificationPage() {
       alert("返却処理が完了しました");
       setIsReturnCompleted(true);
       fetchRequests();
-      // closeDetailModal(); // 必要なら閉じる
     } catch (err) {
       console.error(err);
       alert("エラーが発生しました");
     }
   };
 
-  // ================================
-  // JSX
-  // ================================
+  // 署名をクリア
+  const handleClearSignature = () => {
+    padRef.current?.clear();
+    setDataURL(null);
+  };
+
+  // ▶ 署名保存処理（Base64 + Supabase送信）
+  const handleSaveSignature = async () => {
+    const signatureData = padRef.current?.toDataURL("image/png");
+    if (!signatureData) {
+      alert("署名がありません。");
+      return;
+    }
+    setDataURL(signatureData);
+
+    if (!selectedRequest) {
+      alert("保存対象のリクエストが不明です。");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/signatureSave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signatureData: signatureData, id: selectedRequest.id }),
+      });
+      if (!res.ok) {
+        throw new Error("署名保存に失敗しました");
+      }
+      alert("署名保存完了！（Supabaseへアップロード）");
+    } catch (err) {
+      console.error(err);
+      alert("署名保存中にエラーが発生しました");
+    }
+  };
+
   return (
     <>
       <div className={styles.container}>
@@ -281,7 +307,7 @@ export default function NotificationPage() {
           className={styles.addButton}
           onClick={() => setShowProductModal(true)}
         >
-          申請追加
+          申請登録
         </button>
 
         {/* 検索バー */}
@@ -365,6 +391,7 @@ export default function NotificationPage() {
       {selectedRequest && (
         <div className={styles.modalOverlay} onClick={closeDetailModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <button className={styles.closeButton} onClick={closeDetailModal}>×</button>
             <h2>申請詳細</h2>
             <Image
               src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedRequest.img_url}`}
@@ -385,14 +412,12 @@ export default function NotificationPage() {
               {new Date(selectedRequest.created_at).toLocaleDateString()}
             </p>
 
-            {/* すでに返却完了かどうか */}
             {selectedRequest.return_completed === "はい" ? (
               <p className={styles.alreadyReturned}>
                 すでに返却完了されています。
               </p>
             ) : (
               <>
-                {/* まだ返却していない */}
                 {!showReturnConfirmation && !isReturnCompleted && (
                   <div className={styles.modalButtons}>
                     <button
@@ -401,7 +426,6 @@ export default function NotificationPage() {
                     >
                       返却処理
                     </button>
-                    {/* 返却処理の横に閉じるボタンを置きたい */}
                     <button
                       onClick={closeDetailModal}
                       className={styles.modalButton}
@@ -434,27 +458,57 @@ export default function NotificationPage() {
                         </button>
                       </div>
                     )}
+
                     {userChoice === "はい" && (
-                      <div className={styles.modalButtons}>
-                        <button
-                          onClick={handleReturnComplete}
-                          className={styles.modalButton}
-                        >
-                          返却完了
-                        </button>
-                        {/* 返却完了ボタンの横に閉じるボタン */}
-                        <button
-                          onClick={closeDetailModal}
-                          className={styles.modalButton}
-                        >
-                          閉じる
-                        </button>
+                      <div>
+                        <div>
+                          {/* キャンバス */}
+                          <div className={styles.signatureWrapper}>
+                            <SignatureCanvas
+                              ref={padRef}
+                              canvasProps={{
+                                className: styles.signatureCanvas,
+                              }}
+                            />
+                          </div>
+                          <div className={styles.modalButtons} style={{ marginTop: "10px" }}>
+                            <button className={styles.modalButton} onClick={handleClearSignature}>Clear</button>
+                            {/* ▼ Trim 대신 "서명 저장" 버튼 */}
+                            <button className={styles.modalButton} onClick={handleSaveSignature}>署名保存</button>
+                          </div>
+                          {/* 미리보기 이미지 */}
+                          {dataURL && (
+                            <img
+                              src={dataURL}
+                              alt="signature preview"
+                              style={{
+                                marginTop: "10px",
+                                border: "1px solid #ccc",
+                                display: "block",
+                                width: "200px"
+                              }}
+                            />
+                          )}
+                        </div>
+                        <div className={styles.modalButtons} style={{ marginTop: "10px" }}>
+                          <button
+                            onClick={handleReturnComplete}
+                            className={styles.modalButton}
+                          >
+                            返却完了
+                          </button>
+                          <button
+                            onClick={closeDetailModal}
+                            className={styles.modalButton}
+                          >
+                            閉じる
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* 返却完了後のメッセージ */}
                 {isReturnCompleted && (
                   <p className={styles.returnCompletedLabel}>
                     返却が完了しました。
@@ -468,7 +522,7 @@ export default function NotificationPage() {
 
       {/* ▼ 商品ID入力モーダル */}
       {showProductModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowProductModal(false)}>
+        <div className={styles.modalOverlay} onClick={() => {setShowProductModal(false); setProductId("");}}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h2>商品 ID 入力</h2>
             <input
@@ -478,8 +532,18 @@ export default function NotificationPage() {
               onChange={(e) => setProductId(e.target.value)}
             />
             <div className={styles.modalButtons}>
-              <button className={styles.modalButton} onClick={fetchProductById}>次へ</button>
-              <button className={styles.modalButton} onClick={() => setShowProductModal(false)}>キャンセル</button>
+              <button className={styles.modalButton} onClick={fetchProductById}>
+                次へ
+              </button>
+              <button
+                className={styles.modalButton}
+                onClick={() => {
+                  setShowProductModal(false);
+                  setProductId(""); 
+                }}
+              >
+                キャンセル
+              </button>
             </div>
           </div>
         </div>
@@ -519,8 +583,15 @@ export default function NotificationPage() {
               }
             />
             <div className={styles.modalButtons}>
-              <button className={styles.modalButton} onClick={handleRegisterRequest}>登録</button>
-              <button className={styles.modalButton} onClick={() => setShowRequestModal(false)}>キャンセル</button>
+              <button className={styles.modalButton} onClick={handleRegisterRequest}>
+                登録
+              </button>
+              <button
+                className={styles.modalButton}
+                onClick={() => setShowRequestModal(false)}
+              >
+                キャンセル
+              </button>
             </div>
           </div>
         </div>
@@ -528,6 +599,565 @@ export default function NotificationPage() {
     </>
   );
 }
+
+
+
+// "use client";
+// import { useState, useEffect} from "react";
+// import React from 'react'
+// import Image from "next/image";
+// import styles from "./index.module.css";
+// import NavBar from "@/components/navBar/navBar";
+// import SignatureCanvas from "react-signature-canvas";
+
+// /** 申請データの型 */
+// interface RequestData {
+//   id: number;
+//   applicant: string;
+//   name: string;
+//   place: string;
+//   feature: string;
+//   lost_day: string;
+//   created_at: string;
+//   img_url: string;
+//   product_id: string;
+//   return_completed: string; 
+// }
+
+// /** 商品データの型 */
+// interface ProductData {
+//   id: number;
+//   name: string;
+//   place: string;
+//   feature: string;
+//   img_url: string;
+// }
+
+// export default function NotificationPage() {
+//   const [requests, setRequests] = useState<RequestData[]>([]);
+//   const [filteredRequests, setFilteredRequests] = useState<RequestData[]>([]);
+//   const [products, setProducts] = useState<ProductData[]>([]);
+
+//   // 検索・フィルタ用
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [startDate, setStartDate] = useState("");
+//   const [endDate, setEndDate] = useState("");
+
+//   // モーダル管理
+//   const [showProductModal, setShowProductModal] = useState(false);
+//   const [showRequestModal, setShowRequestModal] = useState(false);
+
+//   // 新規申請用
+//   const [productId, setProductId] = useState("");
+//   const [newRequest, setNewRequest] = useState({
+//     applicant: "",
+//     lost_day: "",
+//     return_completed: "",
+//   });
+
+//   // 選択された request / product
+//   const [selectedRequest, setSelectedRequest] = useState<RequestData | null>(null);
+//   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
+
+//   // ローディング / エラー
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+
+//   // 返却処理用 state
+//   const [showReturnConfirmation, setShowReturnConfirmation] = useState(false);
+//   const [userChoice, setUserChoice] = useState<"" | "はい" | "いいえ">("");
+//   const [isReturnCompleted, setIsReturnCompleted] = useState(false);
+
+
+//   const [dataURL, setDataURL] = useState<string | null>(null);
+
+//   // -------------------------------
+//   // 初回マウント: リクエスト一覧を取得
+//   // -------------------------------
+//   useEffect(() => {
+//     fetchRequests();
+//   }, []);
+
+//   // -------------------------------
+//   // 検索・日付フィルタ適用
+//   // -------------------------------
+//   useEffect(() => {
+//     handleSearch();
+//   }, [searchQuery, startDate, endDate]);
+
+//   // リクエスト一覧の取得
+//   const fetchRequests = async () => {
+//     try {
+//       setLoading(true);
+//       setError(null);
+
+//       const response = await fetch("/api/requestList");
+//       if (!response.ok) throw new Error("データ取得失敗");
+//       const data = await response.json();
+
+//       // 最新30件
+//       const sortedData = data.data
+//         .sort((a: RequestData, b: RequestData) =>
+//           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+//         )
+//         .slice(0, 30);
+
+//       setRequests(sortedData);
+//       setFilteredRequests(sortedData);
+//     } catch (err) {
+//       setError(err instanceof Error ? err.message : "エラーが発生しました");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // 検索・日付フィルタ
+//   const handleSearch = () => {
+//     let filtered = requests;
+//     if (searchQuery) {
+//       filtered = filtered.filter((req) =>
+//         [req.applicant, req.name, req.place, req.feature, req.lost_day].some(
+//           (value) => value.toLowerCase().includes(searchQuery.toLowerCase())
+//         )
+//       );
+//     }
+
+//     function toUtcRangeFromJst(dateString: string) {
+//       const start = new Date(`${dateString}T00:00:00.000+09:00`); 
+//       const startUtc = new Date(start.toISOString());
+//       const endPart = new Date(`${dateString}T23:59:59.999+09:00`);
+//       const endUtc = new Date(endPart.toISOString());
+    
+//       return { startUtc, endUtc };
+//     }
+    
+//     if (startDate && endDate) {
+//       if (startDate === endDate) {
+//         const { startUtc, endUtc } = toUtcRangeFromJst(startDate);
+//         filtered = filtered.filter((product) => {
+//           const utcDate = new Date(product.created_at); 
+//           return utcDate >= startUtc && utcDate <= endUtc;
+//         });
+//       } else {
+//         let startUtc = null;
+//         let endUtc   = null;
+    
+//         if (startDate) {
+//           startUtc = toUtcRangeFromJst(startDate).startUtc;
+//         }
+//         if (endDate) {
+//           endUtc   = toUtcRangeFromJst(endDate).endUtc;
+//         }
+    
+//         filtered = filtered.filter((product) => {
+//           const utcDate = new Date(product.created_at);
+//           const afterStart = !startUtc || utcDate >= startUtc;
+//           const beforeEnd  = !endUtc   || utcDate <= endUtc;
+//           return afterStart && beforeEnd;
+//         });
+//       }
+//     }
+    
+    
+//     // if (startDate && endDate && startDate === endDate) {
+//     //   const start = new Date(`${startDate}T00:00:00Z`);
+//     //   const end = new Date(`${endDate}T23:59:59.999Z`);
+//     //   filtered = filtered.filter((req) => {
+//     //     const reqDate = new Date(req.created_at);
+//     //     return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
+//     //   });
+//     // }else{
+//     //   const start = startDate ? new Date(startDate) : null;
+//     //   const end = endDate ? new Date(endDate) : null;
+//     //   filtered = filtered.filter((req) => {
+//     //     const reqDateUTC = new Date(req.created_at+ 9 * 60 * 60 * 1000);
+//     //     const reqDateJST = new Date(reqDateUTC.getTime() + 9 * 60 * 60 * 1000);
+//     //     return (start ? reqDateJST >= start : true) && (end ? reqDateJST <= end : true);
+//     //   });
+//     // }
+//     setFilteredRequests(filtered);
+//   };
+
+//   // 商品ID から商品検索
+//   const fetchProductById = async () => {
+//     try {
+//       if (!products || products.length === 0) {
+//         const resp = await fetch("/api/productList");
+//         if (!resp.ok) throw new Error("商品データ取得失敗");
+//         const result = await resp.json();
+//         setProducts(result.data);
+//       }
+
+//       // 最新の products から目的の商品を探す
+//       const found = (products.length > 0 ? products : [])
+//         .find(p => p.id === parseInt(productId, 10));
+
+//       if (found) {
+//         setSelectedProduct(found);
+//         setShowProductModal(false);
+//         setShowRequestModal(true);
+//       } else {
+//         alert("該当の商品IDが見つかりません");
+//       }
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   // 新規申請を登録
+//   const handleRegisterRequest = async () => {
+//     if (!selectedProduct) return;
+
+//     try {
+//       const requestData = {
+//         product_id: selectedProduct.id,
+//         name: selectedProduct.name,
+//         place: selectedProduct.place,
+//         feature: selectedProduct.feature,
+//         img_url: selectedProduct.img_url,
+//         applicant: newRequest.applicant,
+//         lost_day: newRequest.lost_day,
+//         return_completed: newRequest.return_completed,
+//       };
+//       const res = await fetch("/api/register2/POST", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(requestData),
+//       });
+//       if (!res.ok) throw new Error("登録失敗");
+
+//       setShowRequestModal(false);
+//       fetchRequests();
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   // 詳細モーダル閉じる
+//   const closeDetailModal = () => {
+//     setSelectedRequest(null);
+//     setShowReturnConfirmation(false);
+//     setUserChoice("");
+//     setIsReturnCompleted(false);
+//   };
+
+//   // 返却処理フロー
+//   const handleStartReturnProcess = () => {
+//     setShowReturnConfirmation(true);
+//     setUserChoice("");
+//     setIsReturnCompleted(false);
+//   };
+
+//   const handleYes = () => {
+//     setUserChoice("はい");
+//   };
+
+//   const handleNo = () => {
+//     setUserChoice("いいえ");
+//     setShowReturnConfirmation(false);
+//   };
+
+//   const handleReturnComplete = async () => {
+//     if (!selectedRequest) return;
+//     try {
+//       const res = await fetch("/api/requestList", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           id: selectedRequest.id,
+//           return_completed: "はい",
+//         }),
+//       });
+//       if (!res.ok) throw new Error("返却処理失敗");
+
+//       alert("返却処理が完了しました");
+//       setIsReturnCompleted(true);
+//       fetchRequests();
+//       // closeDetailModal(); // 必要なら閉じる
+//     } catch (err) {
+//       console.error(err);
+//       alert("エラーが発生しました");
+//     }
+//   };
+
+
+//   let padRef = React.useRef<SignatureCanvas>(null);
+
+//   const clear = () => {
+//     padRef.current?.clear();
+//   };
+
+//   const trim = () => {
+//     const url = padRef.current?.toDataURL("image/jpg");
+//     if (url) setDataURL(url);
+//   };
+
+//   // ================================
+//   // JSX
+//   // ================================
+//   return (
+//     <>
+//       <div className={styles.container}>
+//         <button
+//           className={styles.addButton}
+//           onClick={() => setShowProductModal(true)}
+//         >
+//           申請追加
+//         </button>
+
+//         {/* 検索バー */}
+//         <input
+//           type="text"
+//           className={styles.searchBar}
+//           placeholder="検索"
+//           value={searchQuery}
+//           onChange={(e) => setSearchQuery(e.target.value)}
+//         />
+
+//         {/* 日付フィルタ */}
+//         <div className={styles.dateFilter}>
+//           <label htmlFor="startDate">開始日</label>
+//           <input
+//             type="date"
+//             id="startDate"
+//             className={styles.dateInput}
+//             value={startDate}
+//             onChange={(e) => setStartDate(e.target.value)}
+//           />
+
+//           <label htmlFor="endDate">終了日</label>
+//           <input
+//             type="date"
+//             id="endDate"
+//             className={styles.dateInput}
+//             value={endDate}
+//             onChange={(e) => setEndDate(e.target.value)}
+//           />
+//         </div>
+
+//         {loading && <p className={styles.loading}>Loading...</p>}
+//         {error && <p className={styles.error}>⚠️ {error}</p>}
+
+//         <div className={styles.listGrid}>
+//           {filteredRequests.map((req) => {
+//             const isReturned = req.return_completed === "はい";
+//             return (
+//               <div
+//                 key={req.id}
+//                 className={
+//                   isReturned
+//                     ? `${styles.notificationItem} ${styles.returnedItem}`
+//                     : styles.notificationItem
+//                 }
+//                 onClick={() => setSelectedRequest(req)}
+//               >
+//                 <Image
+//                   src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${req.img_url}`}
+//                   alt="Product Image"
+//                   width={100}
+//                   height={100}
+//                   className={styles.productImage}
+//                 />
+//                 <p><strong>申請ID:</strong> {req.id}</p>
+//                 <p><strong>商品ID:</strong> {req.product_id}</p>
+//                 <p><strong>申請者:</strong> {req.applicant}</p>
+//                 <p><strong>名称:</strong> {req.name}</p>
+//                 <p><strong>場所:</strong> {req.place}</p>
+//                 <p><strong>特徴:</strong> {req.feature}</p>
+//                 <p><strong>紛失日:</strong> {req.lost_day}</p>
+//                 <p>
+//                   <strong>申請日:</strong>{" "}
+//                   {new Date(req.created_at).toLocaleDateString()}
+//                 </p>
+//                 {isReturned && (
+//                   <p className={styles.returnCompletedLabel}>
+//                     返却完了済み
+//                   </p>
+//                 )}
+//               </div>
+//             );
+//           })}
+//         </div>
+//       </div>
+
+//       <NavBar />
+
+//       {/* ▼ 詳細モーダル */}
+//       {selectedRequest && (
+//         <div className={styles.modalOverlay} onClick={closeDetailModal}>
+//           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+//             <h2>申請詳細</h2>
+//             <Image
+//               src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedRequest.img_url}`}
+//               alt="Product Image"
+//               width={100}
+//               height={100}
+//               className={styles.productImage}
+//             />
+//             <p><strong>申請ID:</strong> {selectedRequest.id}</p>
+//             <p><strong>商品ID:</strong> {selectedRequest.product_id}</p>
+//             <p><strong>申請者:</strong> {selectedRequest.applicant}</p>
+//             <p><strong>名称:</strong> {selectedRequest.name}</p>
+//             <p><strong>場所:</strong> {selectedRequest.place}</p>
+//             <p><strong>特徴:</strong> {selectedRequest.feature}</p>
+//             <p><strong>紛失日:</strong> {selectedRequest.lost_day}</p>
+//             <p>
+//               <strong>申請日:</strong>{" "}
+//               {new Date(selectedRequest.created_at).toLocaleDateString()}
+//             </p>
+
+//             {/* すでに返却完了かどうか */}
+//             {selectedRequest.return_completed === "はい" ? (
+//               <p className={styles.alreadyReturned}>
+//                 すでに返却完了されています。
+//               </p>
+//             ) : (
+//               <>
+//                 {/* まだ返却していない */}
+//                 {!showReturnConfirmation && !isReturnCompleted && (
+//                   <div className={styles.modalButtons}>
+//                     <button
+//                       onClick={handleStartReturnProcess}
+//                       className={styles.modalButton}
+//                     >
+//                       返却処理
+//                     </button>
+//                     {/* 返却処理の横に閉じるボタンを置きたい */}
+//                     <button
+//                       onClick={closeDetailModal}
+//                       className={styles.modalButton}
+//                     >
+//                       閉じる
+//                     </button>
+//                   </div>
+//                 )}
+
+//                 {showReturnConfirmation && !isReturnCompleted && (
+//                   <div>
+//                     <p className={styles.confirmMessage}>
+//                       本当に自分のものと間違いないですか？<br/>
+//                       後々に問題が起きた場合、責任を負うことになりますがよろしいですか？
+//                     </p>
+
+//                     {userChoice === "" && (
+//                       <div className={styles.modalButtons}>
+//                         <button
+//                           onClick={handleYes}
+//                           className={styles.modalButton}
+//                         >
+//                           はい
+//                         </button>
+//                         <button
+//                           onClick={handleNo}
+//                           className={styles.modalButton}
+//                         >
+//                           いいえ
+//                         </button>
+//                       </div>
+//                     )}
+//                     {userChoice === "はい" && (
+//                       <div>
+//                         <div>
+//                           <SignatureCanvas ref={padRef} canvasProps={{ width: 400, height: 200, className: "sigCanvas" }} />
+//                           <div className="sigPreview">
+//                             <button onClick={trim}>Trim</button>
+//                             <button onClick={clear}>Clear</button>
+//                           </div>
+//                         </div>
+//                         <div className={styles.modalButtons}>
+//                           <button
+//                             onClick={handleReturnComplete}
+//                             className={styles.modalButton}
+//                           >
+//                             返却完了
+//                           </button>
+//                           {/* 返却完了ボタンの横に閉じるボタン */}
+//                           <button
+//                             onClick={closeDetailModal}
+//                             className={styles.modalButton}
+//                           >
+//                             閉じる
+//                           </button>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+
+//                 {/* 返却完了後のメッセージ */}
+//                 {isReturnCompleted && (
+//                   <p className={styles.returnCompletedLabel}>
+//                     返却が完了しました。
+//                   </p>
+//                 )}
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ▼ 商品ID入力モーダル */}
+//       {showProductModal && (
+//         <div className={styles.modalOverlay} onClick={() => setShowProductModal(false)}>
+//           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+//             <h2>商品 ID 入力</h2>
+//             <input
+//               type="text"
+//               placeholder="商品 ID"
+//               value={productId}
+//               onChange={(e) => setProductId(e.target.value)}
+//             />
+//             <div className={styles.modalButtons}>
+//               <button className={styles.modalButton} onClick={fetchProductById}>次へ</button>
+//               <button className={styles.modalButton} onClick={() => setShowProductModal(false)}>キャンセル</button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ▼ 申請追加モーダル */}
+//       {showRequestModal && selectedProduct && (
+//         <div className={styles.modalOverlay} onClick={() => setShowRequestModal(false)}>
+//           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+//             <h2>申請追加</h2>
+//             <Image
+//               src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
+//               alt="Product Image"
+//               width={100}
+//               height={100}
+//               className={styles.productImage}
+//             />
+//             <p><strong>商品ID:</strong> {selectedProduct.id}</p>
+//             <p><strong>名称:</strong> {selectedProduct.name}</p>
+//             <p><strong>場所:</strong> {selectedProduct.place}</p>
+//             <p><strong>特徴:</strong> {selectedProduct.feature}</p>
+
+//             <input
+//               type="text"
+//               placeholder="申請者"
+//               value={newRequest.applicant}
+//               onChange={(e) =>
+//                 setNewRequest({ ...newRequest, applicant: e.target.value })
+//               }
+//             />
+//             <input
+//               type="text"
+//               placeholder="紛失日"
+//               value={newRequest.lost_day}
+//               onChange={(e) =>
+//                 setNewRequest({ ...newRequest, lost_day: e.target.value })
+//               }
+//             />
+//             <div className={styles.modalButtons}>
+//               <button className={styles.modalButton} onClick={handleRegisterRequest}>登録</button>
+//               <button className={styles.modalButton} onClick={() => setShowRequestModal(false)}>キャンセル</button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </>
+//   );
+// }
 
 
 

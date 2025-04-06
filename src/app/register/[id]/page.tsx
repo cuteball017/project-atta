@@ -17,6 +17,7 @@ function Page({ params }: { params: Params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 入力フィールドの参照を作成
   const nameRef = useRef<HTMLInputElement>(null);
   const brandRef = useRef<HTMLInputElement>(null);
   const colorRef = useRef<HTMLInputElement>(null);
@@ -24,10 +25,10 @@ function Page({ params }: { params: Params }) {
   const placeRef = useRef<HTMLInputElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
 
-
   const router = useRouter();
 
   useEffect(() => {
+    // 画像のURLと分析結果を取得
     const fetchImageData = async () => {
       try {
         const res = await fetch(`/api/img?id=${params.id}`);
@@ -35,12 +36,12 @@ function Page({ params }: { params: Params }) {
 
         if (data.data && data.data.publicUrl) {
           setImgUrl(data.data.publicUrl);
-          await analyzeImageWithGemini(data.data.publicUrl); // 이미지 분석 후 로딩 상태 변경
+          await analyzeImageWithGemini(data.data.publicUrl); // 画像分析後にローディング状態を更新
         } else {
-          throw new Error("Invalid image data");
+          throw new Error("画像データが無効です");
         }
       } catch (err) {
-        setError("Failed to fetch image URL");
+        setError("画像URLの取得に失敗しました");
         console.error(err);
         setLoading(false);
       }
@@ -49,27 +50,84 @@ function Page({ params }: { params: Params }) {
     fetchImageData();
   }, [params.id]);
 
+  // name, brand, color を一括で日本語に翻訳
+  const translateMultipleToJapaneseWithGemini = async (data: {
+    name: string;
+    brand: string;
+    color: string;
+  }) => {
+    try {
+      const res = await fetch(`/api/translate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+  
+      const result = await res.json();
+      return result; // 例: { name: "名前", brand: "ブランド", color: "色" }
+    } catch (err) {
+      console.error("翻訳に失敗しました:", err);
+      return data; // エラー時は元のデータを返す
+    }
+  };
+  
+  // Gemini による画像の内容分析と翻訳
   const analyzeImageWithGemini = async (imageUrl: string) => {
     try {
       const res = await fetch(`/api/gemini`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageUrl }),
       });
+  
+      const data = await res.json(); // 返却例: { name, brand, color, feature }
 
-      const data = await res.json();
+      // ✅ 翻訳処理（まとめて実行）
+      const translated = await translateMultipleToJapaneseWithGemini({
+        name: data.name,
+        brand: data.brand,
+        color: data.color,
+      });
 
-      if (nameRef.current) nameRef.current.value = data.name;
-      if (brandRef.current) brandRef.current.value = data.brand;
-      if (colorRef.current) colorRef.current.value = data.color;
-      if (featureRef.current) featureRef.current.value = data.feature;
+      console.log("翻訳結果:", translated);
+
+      // 入力欄に自動入力（翻訳後の値を優先）
+      if (nameRef.current) nameRef.current.value = translated.name || data.name;
+      if (brandRef.current) brandRef.current.value = translated.brand || data.brand;
+      if (colorRef.current) colorRef.current.value = translated.color || data.color;
+      if (featureRef.current) featureRef.current.value = data.feature || "";
 
       setLoading(false);
     } catch (err) {
-      setError("Failed to analyze the image");
+      setError("画像の分析に失敗しました");
       console.error(err);
       setLoading(false);
     }
   };
+
+  
+  
+  // const analyzeImageWithGemini = async (imageUrl: string) => {
+  //   try {
+  //     const res = await fetch(`/api/gemini`, {
+  //       method: "POST",
+  //       body: JSON.stringify({ imageUrl }),
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (nameRef.current) nameRef.current.value = data.name;
+  //     if (brandRef.current) brandRef.current.value = data.brand;
+  //     if (colorRef.current) colorRef.current.value = data.color;
+  //     if (featureRef.current) featureRef.current.value = data.feature;
+
+  //     setLoading(false);
+  //   } catch (err) {
+  //     setError("Failed to analyze the image");
+  //     console.error(err);
+  //     setLoading(false);
+  //   }
+  // };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

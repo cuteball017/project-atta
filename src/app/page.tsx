@@ -1,3 +1,4 @@
+// "use client" ディレクティブ
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -21,15 +22,15 @@ interface Product {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [searchQuery, setSearchQuery] = useState(""); // 검색어
-  const [selectedCategory, setSelectedCategory] = useState(""); // 카테고리 필터
-  const [startDate, setStartDate] = useState(""); // 시작 날짜
-  const [endDate, setEndDate] = useState(""); // 종료 날짜
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // 모달에 표시할 상품
+  const [searchQuery, setSearchQuery] = useState(""); // 検索キーワード
+  const [selectedCategory, setSelectedCategory] = useState(""); // カテゴリーフィルター
+  const [startDate, setStartDate] = useState(""); // 開始日
+  const [endDate, setEndDate] = useState(""); // 終了日
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // モーダルに表示する商品
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔹 데이터 가져오기 (최신 등록순으로 정렬 후, 최대 30개만 표시)
+  // 🔹 データ取得（最新登録順にソートし、最大30件表示）
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -50,13 +51,12 @@ export default function Home() {
 
         const result = await response.json();
 
-        // 🔹 최신 등록순으로 정렬 후, 최대 30개만 저장
+        // 🔹 最新登録順にソートし、最大30件を保存
         const sortedProducts = result.data
-          .sort((a: Product, b: Product) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 30);
+          .sort((a: Product, b: Product) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
         setProducts(result.data);
-        setFilteredProducts(sortedProducts);
+        setFilteredProducts(sortedProducts.slice(0, 30));
       } catch (error) {
         setError(error instanceof Error ? error.message : "エラーが発生しました");
       } finally {
@@ -71,11 +71,16 @@ export default function Home() {
   useEffect(() => {
     let filtered = products;
 
+    const hasSearch = searchQuery.trim() !== "";
+    const hasDate = startDate !== "" || endDate !== "";
+
     // 🔹 基本検索
     if (searchQuery) {
       filtered = filtered.filter((product) =>
-        [product.name, product.brand, product.color, product.feature, product.place, product.category]
-          .some((value) => typeof value === "string" && value.toLowerCase().includes(searchQuery.toLowerCase()))
+        [product.id, product.name, product.brand, product.color, product.feature, product.place, product.category]
+          .some((value) =>
+            String(value).toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
@@ -85,54 +90,25 @@ export default function Home() {
     }
     
     // 🔹 日付検索
-    if (startDate && endDate && startDate === endDate) {
-      const start = new Date(`${startDate}T00:00:00Z`);
-      const end = new Date(`${endDate}T23:59:59.999Z`);
+    if (startDate || endDate) {
+      const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
+      const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null;
+
       filtered = filtered.filter((product) => {
-        const reqDate = new Date(product.created_at);
-        return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
-      });
-    }else{
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
-      filtered = filtered.filter((product) => {
-        const reqDate = new Date(product.created_at);
-        return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
+        const createdAt = new Date(product.created_at);
+        return (!start || createdAt >= start) && (!end || createdAt <= end);
       });
     }
 
-    // // 🔹 날짜 필터 적용
-    // if (startDate == endDate) {
-    //   const start = new Date(`${startDate}T00:00:00Z`);
-    //   const end = new Date(`${endDate}T23:59:59.999Z`);
-    //   filtered = filtered.filter((product) => {
-    //     const productDate = new Date(product.created_at);
-    //     if (start && end) {
-    //       return productDate >= start && productDate <= end;
-    //     }
-    //     return true;
-    //   }); 
-    // }else{
-    //   const start = startDate ? new Date(startDate) : null;
-    //   const end = endDate ? new Date(endDate) : null;
-
-    //   filtered = filtered.filter((product) => {
-    //     const productDate = new Date(product.created_at);
-    //     if (start && end) {
-    //       return productDate >= start && productDate <= end;
-    //     } else if (start) {
-    //       return productDate >= start;
-    //     } else if (end) {
-    //       return productDate <= end;
-    //     }
-    //     return true;
-    //   }); 
-    // }
-
+    // 🔹 検索または日付指定がない場合、最大30件のみ表示
+    if (!hasSearch && !hasDate) {
+      filtered = filtered.slice(0, 30);
+    }
+    
     setFilteredProducts(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, products]);
 
-  // 🔹 ESC 키로 모달 닫기 기능 추가
+  // 🔹 ESCキーでモーダルを閉じる機能
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -147,9 +123,9 @@ export default function Home() {
   return (
     <>
       <div className={styles.container}>
-        {/* 🔹 검색 필터 UI */}
+        {/* 🔹 検索フィルターUI */}
         <div className={styles.filterContainer}>
-          {/* 🔍 검색 바 */}
+          {/* 🔍 検索バー */}
           <label htmlFor="searchQuery" className={styles.filterLabel}>検索</label>
           <input
             type="text"
@@ -162,7 +138,7 @@ export default function Home() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          {/* 🔹 날짜 검색 필드 */}
+          {/* 🔹 日付検索フィールド */}
           <div className={styles.dateFilter}>
             <label htmlFor="startDate">開始日</label>
             <input
@@ -175,7 +151,7 @@ export default function Home() {
               onChange={(e) => setStartDate(e.target.value)}
             />
 
-            <span className={styles.dateSeparator}> ~ </span>
+            <span className={styles.dateSeparator}>-</span>
 
             <label htmlFor="endDate">終了日</label>
             <input
@@ -189,7 +165,7 @@ export default function Home() {
             />
           </div>
 
-          {/* 🔹 카테고리 선택 */}
+          {/* 🔹 カテゴリー選択 */}
           <label htmlFor="category" className={styles.filterLabel}>カテゴリー</label>
           <select
             id="category"
@@ -211,13 +187,13 @@ export default function Home() {
           </select>
         </div>
 
-        {/* 로딩 표시 */}
+        {/* ローディング表示 */}
         {loading && <p className={styles.loading}>Loading...</p>}
 
-        {/* 에러 메시지 표시 */}
+        {/* エラーメッセージ表示 */}
         {error && <p className={styles.error}>⚠️ {error}</p>}
 
-        {/* 🔹 상품 목록 */}
+        {/* 🔹 商品リスト */}
         {!loading && !error && (
           <ul className={styles.productLists}>
             {filteredProducts.map((product) => (
@@ -244,7 +220,7 @@ export default function Home() {
           </ul>
         )}
 
-        {/* 🔹 모달 (선택한 상품 표시) */}
+        {/* 🔹 モーダル（選択された商品の詳細を表示） */}
         {selectedProduct && (
           <div className={styles.modalOverlay} onClick={() => setSelectedProduct(null)}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -264,8 +240,7 @@ export default function Home() {
                 <p>特徴: {selectedProduct.feature}</p>
                 <p>場所: {selectedProduct.place}</p>
                 <p>カテゴリー: {selectedProduct.category}</p>
-                <p>登録日: {new Date(selectedProduct.created_at).toLocaleDateString()}
-                </p>
+                <p>登録日: {new Date(selectedProduct.created_at).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -278,6 +253,49 @@ export default function Home() {
 
 
 
+
+// if (startDate && endDate && startDate === endDate) {
+    //   const start = new Date(${startDate}T00:00:00Z);
+    //   const end = new Date(${endDate}T23:59:59.999Z);
+    //   filtered = filtered.filter((product) => {
+    //     const reqDate = new Date(product.created_at);
+    //     return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
+    //   });
+    // }else{
+    //   const start = startDate ? new Date(startDate) : null;
+    //   const end = endDate ? new Date(endDate) : null;
+    //   filtered = filtered.filter((product) => {
+    //     const reqDate = new Date(product.created_at);
+    //     return (start ? reqDate >= start : true) && (end ? reqDate <= end : true);
+    //   });
+    // }
+
+    // if (startDate == endDate) {
+    //   const start = new Date(${startDate}T00:00:00Z);
+    //   const end = new Date(${endDate}T23:59:59.999Z);
+    //   filtered = filtered.filter((product) => {
+    //     const productDate = new Date(product.created_at);
+    //     if (start && end) {
+    //       return productDate >= start && productDate <= end;
+    //     }
+    //     return true;
+    //   }); 
+    // }else{
+    //   const start = startDate ? new Date(startDate) : null;
+    //   const end = endDate ? new Date(endDate) : null;
+
+    //   filtered = filtered.filter((product) => {
+    //     const productDate = new Date(product.created_at);
+    //     if (start && end) {
+    //       return productDate >= start && productDate <= end;
+    //     } else if (start) {
+    //       return productDate >= start;
+    //     } else if (end) {
+    //       return productDate <= end;
+    //     }
+    //     return true;
+    //   }); 
+    // }
 
 
 

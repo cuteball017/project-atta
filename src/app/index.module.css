@@ -184,8 +184,9 @@
 
 /* 🔹 모달 내용 (상품 정보) */
 .modalContent {
-  font-size: 16px;
-  text-align: left;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
   margin-top: 10px;
   width: 90%;
 }
@@ -229,19 +230,19 @@
 /* 🔹 반응형 설정 */
 @media (max-width: 1024px) {
   .modal {
-    width: 85%;
-    height: 70vh;
+    width: 70%;
+    height: 55vh;
   }
 }
 
 @media (max-width: 768px) {
   .modal {
-    width: 95%;
-    height: 80vh;
+    width: 70%;
+    height: 60vh;
   }
 
   .modalContent {
-    font-size: 14px;
+    font-size: 18px;
   }
 }
 

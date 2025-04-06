@@ -245,6 +245,48 @@
   line-height: 1.6;
 }
 
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.closeButton:hover {
+  color: red;
+}
+
+.sigCanvas {
+  border: 3px solid #aaa; 
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+/* サインキャンバスのラッパー：横幅を画面に合わせる */
+.signatureWrapper {
+  width: 100%;
+  max-width: 400px;  /* 最大幅はPC表示用 */
+  margin: 0 auto;
+}
+
+/* サインキャンバス本体 */
+.signatureCanvas {
+  width: 100% !important;         /* 幅を親要素にフィットさせる（スマホ対応） */
+  height: auto !important;        /* 高さは比率に応じて自動調整 */
+  aspect-ratio: 2 / 1;            /* アスペクト比 2:1（例：400×200） */
+  border: 3px solid #aaa;         /* 枠線でキャンバス範囲を明示 */
+  border-radius: 8px;             /* 角を丸める */
+  background-color: #fff;         /* 背景は白 */
+  display: block;                 /* ブロック要素として表示 */
+}
+
+
 /* ---------- レスポンシブ対応 ---------- */
 @media (max-width: 1024px) {
   .listGrid {
@@ -259,10 +301,10 @@
     grid-template-columns: repeat(1, 1fr);
   }
   .modal {
-    width: 80%;
+    width: 70%;
   }
   .modal input {
-    font-size: 14px;
+    font-size: 18px;
   }
 }
 
