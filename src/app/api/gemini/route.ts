@@ -33,3 +33,4 @@ export async function POST(req: Request, res: NextResponse) {
   const featureMatch = gemini_res.text.match(/feature:\s*([^\n]+)/);
   return NextResponse.json({ name: nameMatch ? nameMatch[1].trim() : "", brand: brandMatch ? brandMatch[1].trim() : "", color: colorMatch ? colorMatch[1].trim() : "", feature: featureMatch ? featureMatch[1].trim() : "" });
 }
+  
