@@ -1,12 +1,111 @@
 .navBar {
     position: fixed;
+    z-index: 100;
+    background-color: #efefef;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .navList {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .navItem {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .navLink {
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+  }
+  
+  .navText {
+    margin-left: 8px;
+  }
+  
+  /* Mobile layout (bottom navigation) */
+  @media (max-width: 1023px) {
+    .navBar {
+      width: 100%;
+      max-width: 500px;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 0;
+    }
+  
+    .navList {
+      justify-content: space-between;
+      padding: 10px 28px;
+    }
+  
+    .navItem {
+      flex-direction: column;
+    }
+  
+    .navLink {
+      flex-direction: column;
+      padding: 5px;
+    }
+  
+    .navText {
+      margin-left: 0;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+  }
+  
+  /* Desktop layout (top-right navigation) */
+  @media (min-width: 1024px) {
+    .navBar {
+      top: 20px;
+      right: 60px; /* Moved left to make room for settings icon */
+      border-radius: 8px;
+      padding: 5px;
+    }
+  
+    .navList {
+      flex-direction: row;
+    }
+  
+    .navItem {
+      margin: 0 5px;
+    }
+  
+    .navLink {
+      flex-direction: row;
+      padding: 8px 15px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+  
+    .navLink:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+  
+  
+  
+
+
+/* .navBar {
+    position: fixed;
     width: 100%;
     max-width: 500px;
     bottom: 0;
     z-index: 100;
     background-color: #EFEFEF;
     text-align: center;
-}
+} */
 /* 
 🔹 네비게이션 바 스타일 수정 (고정된 위치)
 .navBar {
@@ -21,7 +120,7 @@
     padding-bottom: 10px;
   } */
 
-.navBar ul{
+/* .navBar ul{
     display: flex;
     justify-content: space-between;
     list-style: none;
@@ -37,4 +136,4 @@
 
 .navBar a{
     text-decoration: none;
-}
+} */

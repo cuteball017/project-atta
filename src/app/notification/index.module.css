@@ -1,6 +1,11 @@
 /* ==================================
    全体のコンテナや基本スタイル
 ================================== */
+.pageWrapper {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
 
 .container {
   width: 90%;
@@ -14,13 +19,23 @@
   align-items: center;
 }
 
+/* 検索結果カウンター */
+.resultsHeader {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
 /* 申請追加ボタン */
 .addButton {
   width: 100%;
   max-width: 500px;
   padding: 14px;
   font-size: 18px;
-  background-color: #E95C66;
+  background-color: #e95c66;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -32,9 +47,38 @@
   background-color: #d94c58;
 }
 
+/* 返却済み非表示ボタン */
+.hideCompletedButton {
+  padding: 12px 16px;
+  font-size: 16px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  text-align: center;
+}
+.hideCompletedButton.active {
+  background-color: #e95c66;
+  color: white;
+  border-color: #e95c66;
+}
+.hideCompletedButton:hover {
+  background-color: #e0e0e0;
+}
+.hideCompletedButton.active:hover {
+  background-color: #d94c58;
+}
+
 /* 検索バー */
 .searchBar {
-  width: 100%;
+  width: 93%;
   max-width: 500px;
   padding: 12px;
   font-size: 16px;
@@ -45,7 +89,7 @@
   margin-bottom: 15px;
 }
 .searchBar:focus {
-  border-color: #E95C66;
+  border-color: #e95c66;
   box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
 }
 
@@ -72,7 +116,7 @@
   transition: all 0.3s ease-in-out;
 }
 .dateInput:focus {
-  border-color: #E95C66;
+  border-color: #e95c66;
   box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
 }
 
@@ -112,7 +156,7 @@
   text-align: center;
   font-size: 18px;
   font-weight: bold;
-  color: #E95C66;
+  color: #e95c66;
   margin-top: 20px;
 }
 .error {
@@ -149,7 +193,7 @@
   padding: 30px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   animation: fadeIn 0.3s ease-in-out;
   overflow-y: auto;
   max-height: 90vh;
@@ -169,7 +213,7 @@
 
 .modal h2 {
   margin-bottom: 20px;
-  color: #E95C66;
+  color: #e95c66;
 }
 .modal p {
   margin: 12px 0;
@@ -192,7 +236,7 @@
   border-radius: 8px;
 }
 .modal input:focus {
-  border-color: #E95C66;
+  border-color: #e95c66;
   box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
 }
 
@@ -211,7 +255,7 @@
   font-size: 16px;
   border: none;
   border-radius: 8px;
-  background-color: #E95C66;
+  background-color: #e95c66;
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -263,7 +307,7 @@
 }
 
 .sigCanvas {
-  border: 3px solid #aaa; 
+  border: 3px solid #aaa;
   border-radius: 8px;
   background-color: #fff;
 }
@@ -271,23 +315,452 @@
 /* サインキャンバスのラッパー：横幅を画面に合わせる */
 .signatureWrapper {
   width: 100%;
-  max-width: 400px;  /* 最大幅はPC表示用 */
+  max-width: 400px; /* 最大幅はPC表示用 */
   margin: 0 auto;
 }
 
 /* サインキャンバス本体 */
 .signatureCanvas {
-  width: 100% !important;         /* 幅を親要素にフィットさせる（スマホ対応） */
-  height: auto !important;        /* 高さは比率に応じて自動調整 */
-  aspect-ratio: 2 / 1;            /* アスペクト比 2:1（例：400×200） */
-  border: 3px solid #aaa;         /* 枠線でキャンバス範囲を明示 */
-  border-radius: 8px;             /* 角を丸める */
-  background-color: #fff;         /* 背景は白 */
-  display: block;                 /* ブロック要素として表示 */
+  width: 100% !important; /* 幅を親要素にフィットさせる（スマホ対応） */
+  height: auto !important; /* 高さは比率に応じて自動調整 */
+  aspect-ratio: 2 / 1; /* アスペクト比 2:1（例：400×200） */
+  border: 3px solid #aaa; /* 枠線でキャンバス範囲を明示 */
+  border-radius: 8px; /* 角を丸める */
+  background-color: #fff; /* 背景は白 */
+  display: block; /* ブロック要素として表示 */
+}
+
+/* デスクトップ用の水平レイアウト */
+.horizontalControls {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* ---------- レスポンシブ対応 ---------- */
+/* デスクトップ・ラップトップ (1024px以上) */
+@media (min-width: 1024px) {
+  .container {
+    width: 95%;
+    max-width: 1400px;
+    padding: 20px;
+    padding-bottom: 20px; /* デスクトップでは下部のパディングを減らす */
+    align-items: flex-start; /* 左揃えにする */
+  }
+
+  .horizontalControls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .addButton {
+    max-width: 180px;
+    margin: 0;
+    padding: 10px 15px;
+    font-size: 16px;
+  }
+
+  .searchBar {
+    max-width: 450px;
+    margin: 0;
+  }
+
+  .dateFilter {
+    flex-direction: row;
+    align-items: center;
+    max-width: 100%;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .dateFilter label {
+    width: auto;
+    margin-right: 5px;
+  }
+
+  .dateInput {
+    width: 150px;
+  }
+
+  /* 返却済み非表示ボタンを日付フィルターの後に配置 */
+  .hideCompletedButton {
+    order: 4;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .listGrid {
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 20px;
+  }
+
+  .modal {
+    max-width: 800px; /* デスクトップでは少し大きめのモーダル */
+  }
+}
+
+/* タブレット (768px以上1023px以下) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .listGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hideCompletedButton {
+    margin-bottom: 15px;
+  }
+}
+
+/* モバイル (767px以下) */
+@media (max-width: 767px) {
+  .listGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .dateFilter {
+    flex-direction: column;
+  }
+
+  .hideCompletedButton {
+    margin-bottom: 15px;
+  }
+
+  /* モバイル用のモーダル調整 */
+  .modal {
+    width: 90%;
+    max-width: 350px;
+    padding: 15px;
+    max-height: 80vh;
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .modal p {
+    font-size: 14px;
+    margin: 8px 0;
+  }
+
+  .modalButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modalButton {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    margin-top: 5px;
+  }
+
+  .closeButton {
+    top: 8px;
+    right: 10px;
+    font-size: 20px;
+  }
+
+  .confirmMessage {
+    font-size: 14px;
+    margin: 15px 0;
+  }
+
+  .signatureWrapper {
+    max-width: 280px;
+  }
+}
+
+/* 大きなデスクトップ (1600px以上) */
+@media (min-width: 1600px) {
+  .listGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 
-/* ---------- レスポンシブ対応 ---------- */
+
+
+
+
+/* .container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.addButton {
+  width: 100%;
+  max-width: 500px;
+  padding: 14px;
+  font-size: 18px;
+  background-color: #E95C66;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.addButton:hover {
+  background-color: #d94c58;
+}
+
+.searchBar {
+  width: 100%;
+  max-width: 500px;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s ease-in-out;
+  margin-bottom: 15px;
+}
+
+.searchBar:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+.dateFilter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.dateFilter label {
+  font-weight: bold;
+  text-align: left;
+  width: 100%;
+}
+
+.dateInput {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+}
+
+.dateInput:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+.listGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.notificationItem {
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+  min-height: 120px;
+}
+
+.notificationItem:hover {
+  transform: scale(1.05);
+}
+
+.returnedItem {
+  background-color: #e1f7e7;
+}
+
+.returnCompletedLabel {
+  color: green;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #E95C66;
+  margin-top: 20px;
+}
+
+.error {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: red;
+  margin-top: 20px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  width: 90%;
+  max-width: 600px;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -55%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.modal h2 {
+  margin-bottom: 20px;
+  color: #E95C66;
+}
+
+.modal p {
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+.productImage {
+  margin-bottom: 16px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.modal input {
+  width: calc(100% - 20px);
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+}
+
+.modal input:focus {
+  border-color: #E95C66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.modalButton {
+  padding: 14px 18px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #E95C66;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: auto;
+  min-width: 100px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.modalButton:hover {
+  background-color: #d94c58;
+}
+
+.alreadyReturned {
+  color: green;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.confirmMessage {
+  font-weight: bold;
+  margin: 24px 0;
+  line-height: 1.6;
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.closeButton:hover {
+  color: red;
+}
+
+.sigCanvas {
+  border: 3px solid #aaa;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.signatureWrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.signatureCanvas {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 2 / 1;
+  border: 3px solid #aaa;
+  border-radius: 8px;
+  background-color: #fff;
+  display: block;
+}
+
 @media (max-width: 1024px) {
   .listGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -296,6 +769,7 @@
     width: 70%;
   }
 }
+
 @media (max-width: 768px) {
   .listGrid {
     grid-template-columns: repeat(1, 1fr);
@@ -306,7 +780,8 @@
   .modal input {
     font-size: 18px;
   }
-}
+} */
+
 
 
 

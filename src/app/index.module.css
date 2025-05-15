@@ -1,23 +1,647 @@
-/* 🔹 네비게이션 바와 겹치지 않도록 컨테이너 여백 추가 */
-.container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  padding-bottom: 80px; /* 네비게이션 바와 겹치지 않도록 여백 추가 */
+/* 🔹 ページ全体のラッパー */
+.pageWrapper {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
-/* 🔹 상품 목록이 네비게이션 바에 가리지 않도록 마진 추가 */
+/* 🔹 メインコンテナ */
+.container {
+  width: 95%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 80px;
+}
+
+/* 🔹 検索結果コンテナ */
+.resultsContainer {
+  margin-top: 20px;
+}
+
+.resultsHeader {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.resultsTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 🔹 フィルターコンテナ */
+.filterContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* 🔹 検索セクション */
+.searchSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px; /* Increased gap between search and category */
+}
+
+.searchBarWrapper {
+  flex: 2;
+  min-width: 200px;
+}
+
+.categoryWrapper {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* 🔹 検索バー */
+.searchBar {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 5px;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+.searchBar:focus {
+  border-color: #e95c66;
+  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.3);
+  outline: none;
+}
+
+/* 🔹 フィルターラベル */
+.filterLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* 🔹 セレクトボックス */
+.selectBox {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  margin-top: 5px;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+.selectBox:focus {
+  border-color: #e95c66;
+  outline: none;
+}
+
+/* 🔹 日付フィルター */
+.dateFilter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dateInput {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+.dateInput:focus {
+  border-color: #e95c66;
+  outline: none;
+}
+
+.dateSeparator {
+  font-size: 16px;
+  color: #666;
+}
+
+/* 🔹 商品リスト */
 .productLists {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 한 줄에 3개씩 */
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
   list-style: none;
   padding: 0;
   margin-bottom: 100px; /* 네비게이션 바 공간 확보 */
 }
 
-/* 🔹 필터 컨테이너 (검색, 카테고리, 날짜 입력을 한 줄 정렬) */
+/* 🔹 商品アイテム */
+.productItem {
+  display: flex;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease-in-out;
+}
+
+.productItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔹 商品画像コンテナ */
+.productImageContainer {
+  width: 150px;
+  height: 150px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* 🔹 商品詳細 */
+.productDetails {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.productId {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.productName {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.productInfo {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.label {
+  font-weight: 500;
+  color: #666;
+}
+
+.productDate {
+  margin-top: auto;
+  font-size: 12px;
+  color: #888;
+  text-align: right;
+}
+
+/* 🔹 モーダル */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  width: 80%;
+  max-width: 900px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+
+.modalContent {
+  display: flex;
+  padding: 0;
+}
+
+.modalImageContainer {
+  width: 40%;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+}
+
+.modalImage {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.modalDetails {
+  flex: 1;
+  padding: 25px;
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.modalInfo {
+  display: grid;
+  gap: 12px;
+}
+
+.modalInfoItem {
+  font-size: 16px;
+  color: #333;
+}
+
+.modalLabel {
+  font-weight: 600;
+  color: #555;
+  margin-right: 5px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 1);
+  color: red;
+}
+
+/* 🔹 ローディングとエラー */
+.loading,
+.error {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: red;
+  margin-top: 20px;
+}
+
+.error {
+  color: #e53935;
+}
+
+/* 🔹 アニメーション */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 🔹 設定アイコン */
+.settingsIcon {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* 🔹 レスポンシブデザイン */
+/* ラップトップ・デスクトップ (1200px以上) */
+@media (min-width: 1200px) {
+  .productLists {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filterContainer {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .searchSection {
+    flex: 3;
+  }
+
+  .dateFilter {
+    flex: 2;
+    justify-content: flex-end;
+  }
+}
+
+/* 大きなデスクトップ (1600px以上) */
+@media (min-width: 1600px) {
+  .productLists {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* タブレット (768px以上) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .productLists {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* すべてのモバイルデバイス (767px以下) - 一貫したモバイルUI */
+@media (max-width: 767px) {
+  /* 共通モバイルスタイル */
+  .container {
+    width: 100%;
+    padding: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .productLists {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  /* 検索セクション */
+  .searchBarWrapper,
+  .categoryWrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .searchSection {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* 日付フィルター - 2行に分割 */
+  .dateFilter {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .dateFilterRow {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .dateInput {
+    flex: 1;
+  }
+
+  /* モーダル - 垂直レイアウト */
+  .modal {
+    width: 90%;
+    height: auto;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .modalContent {
+    flex-direction: column;
+  }
+
+  .modalImageContainer {
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .modalImage {
+    max-width: 250px;
+    max-height: 250px;
+    margin: 0 auto;
+  }
+
+  .modalDetails {
+    padding: 15px;
+  }
+
+  .modalTitle {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .modalInfoItem {
+    font-size: 14px;
+    text-align: left;
+  }
+
+  /* 商品アイテム */
+  .productItem {
+    flex-direction: column;
+  }
+
+  .productImageContainer {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+
+  .productDetails {
+    width: 100%;
+    padding: 0;
+  }
+}
+
+/* iPad (768px以上1023px以下) - タブレット用UI */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    width: 100%;
+    padding: 10px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .productLists {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .productItem {
+    flex-direction: column;
+  }
+
+  .productImageContainer {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+
+  .productDetails {
+    width: 100%;
+    padding: 0;
+  }
+
+  /* 検索セクション */
+  .searchBarWrapper,
+  .categoryWrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .searchSection {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* 日付フィルター - 2行に分割 */
+  .dateFilter {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .dateFilterRow {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .dateInput {
+    flex: 1;
+  }
+
+  /* モーダル - 垂直レイアウト */
+  .modal {
+    width: 90%;
+    height: auto;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .modalContent {
+    flex-direction: column;
+  }
+
+  .modalImageContainer {
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .modalImage {
+    max-width: 250px;
+    max-height: 250px;
+    margin: 0 auto;
+  }
+
+  .modalDetails {
+    padding: 15px;
+  }
+
+  .modalTitle {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .modalInfoItem {
+    font-size: 14px;
+    text-align: left;
+  }
+}
+
+/* モバイル (767px以下) - 画像サイズ調整 */
+@media (max-width: 767px) {
+  .productImageContainer {
+    width: 100%;
+    height: auto;
+    max-width: 130px; /* 画像サイズを小さく調整 */
+    max-height: 130px;
+    margin: 0 auto 10px;
+  }
+
+  .productImage {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .modalImage {
+    max-width: 200px; /* モーダル内画像サイズを小さく */
+    max-height: 200px;
+  }
+
+  .productItem {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .productDetails {
+    width: 100%;
+    padding: 8px 0 0 0;
+  }
+}
+
+/* Remove the unnecessary .settingsIcon class since we're not using it */
+.settingsIcon {
+  display: none;
+}
+
+
+
+
+
+
+/* .container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 80px;
+}
+
+.productLists {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 100px;
+}
+
 .filterContainer {
   display: flex;
   align-items: center;
@@ -27,7 +651,6 @@
   margin-bottom: 20px;
 }
 
-/* 🔹 검색 바 스타일 */
 .searchBar {
   flex: 2;
   min-width: 200px;
@@ -44,14 +667,12 @@
   box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
 }
 
-/* 🔹 필터 라벨 스타일 (카테고리, 날짜 라벨) */
 .filterLabel {
   font-size: 16px;
   font-weight: bold;
   color: #333;
 }
 
-/* 🔹 카테고리 선택 드롭다운 */
 .selectBox {
   flex: 1;
   min-width: 150px;
@@ -69,7 +690,6 @@
   box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.5);
 }
 
-/* 🔹 날짜 선택 필드 스타일 */
 .dateFilter {
   display: flex;
   align-items: center;
@@ -89,29 +709,18 @@
   box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
 }
 
-/* 🔹 날짜 사이 구분 기호 (~) */
 .dateSeparator {
   font-size: 18px;
   font-weight: bold;
   color: #555;
 }
 
-
-/* 🔹 반응형 (태블릿: 한 줄에 2개) */
 @media (max-width: 1024px) {
   .productLists {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* 🔹 반응형 (모바일: 한 줄에 1개) */
-/* @media (max-width: 768px) {
-  .productLists {
-    grid-template-columns: repeat(1, 1fr);
-  }
-} */
-
-/* 🔹 개별 상품 스타일 */
 .productItem {
   padding: 12px;
   background: #f9f9f9;
@@ -126,20 +735,17 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* 🔹 상품 이미지 스타일 */
 .productImage {
   border-radius: 10px;
   object-fit: cover;
 }
 
-/* 🔹 상품 정보 스타일 */
 .item {
   font-size: 14px;
   color: #333;
   margin-top: 5px;
 }
 
-/* 🔹 로딩 및 에러 메시지 */
 .loading,
 .error {
   text-align: center;
@@ -149,7 +755,6 @@
   margin-top: 20px;
 }
 
-/* 🔹 모달 배경 (어두운 오버레이) */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -163,7 +768,6 @@
   z-index: 1000;
 }
 
-/* 🔹 모달 창 (가로 75%, 세로 60%) */
 .modal {
   background: white;
   width: 75%;
@@ -179,10 +783,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow-y: auto; /* 내용이 많을 경우 스크롤 가능 */
+  overflow-y: auto;
 }
 
-/* 🔹 모달 내용 (상품 정보) */
 .modalContent {
   font-size: 24px;
   font-weight: bold;
@@ -191,7 +794,6 @@
   width: 90%;
 }
 
-/* 🔹 모달 내 상품 이미지 */
 .modalImage {
   border-radius: 10px;
   margin-bottom: 10px;
@@ -199,7 +801,6 @@
   height: auto;
 }
 
-/* 🔹 X 닫기 버튼 */
 .closeButton {
   position: absolute;
   top: 10px;
@@ -215,7 +816,6 @@
   color: red;
 }
 
-/* 🔹 모달 애니메이션 (부드럽게 등장) */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -227,7 +827,6 @@
   }
 }
 
-/* 🔹 반응형 설정 */
 @media (max-width: 1024px) {
   .modal {
     width: 70%;
@@ -244,7 +843,8 @@
   .modalContent {
     font-size: 18px;
   }
-}
+} */
+
 
 
 

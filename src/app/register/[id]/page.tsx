@@ -50,84 +50,82 @@ function Page({ params }: { params: Params }) {
     fetchImageData();
   }, [params.id]);
 
-  // name, brand, color を一括で日本語に翻訳
-  const translateMultipleToJapaneseWithGemini = async (data: {
-    name: string;
-    brand: string;
-    color: string;
-  }) => {
-    try {
-      const res = await fetch(`/api/translate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-  
-      const result = await res.json();
-      return result; // 例: { name: "名前", brand: "ブランド", color: "色" }
-    } catch (err) {
-      console.error("翻訳に失敗しました:", err);
-      return data; // エラー時は元のデータを返す
-    }
-  };
-  
-  // Gemini による画像の内容分析と翻訳
-  const analyzeImageWithGemini = async (imageUrl: string) => {
-    try {
-      const res = await fetch(`/api/gemini`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl }),
-      });
-  
-      const data = await res.json(); // 返却例: { name, brand, color, feature }
+  // // name, brand, color を一括で日本語に翻訳
+  // const translateMultipleToJapaneseWithGemini = async (data: {
+  //   name: string;
+  //   brand: string;
+  //   color: string;
+  // }) => {
+  //   try {
+  //     const res = await fetch(`/api/translate`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(data),
+  //     });
 
-      // ✅ 翻訳処理（まとめて実行）
-      const translated = await translateMultipleToJapaneseWithGemini({
-        name: data.name,
-        brand: data.brand,
-        color: data.color,
-      });
+  //     const result = await res.json();
+  //     return result; // 例: { name: "名前", brand: "ブランド", color: "色" }
+  //   } catch (err) {
+  //     console.error("翻訳に失敗しました:", err);
+  //     return data; // エラー時は元のデータを返す
+  //   }
+  // };
 
-      console.log("翻訳結果:", translated);
-
-      // 入力欄に自動入力（翻訳後の値を優先）
-      if (nameRef.current) nameRef.current.value = translated.name || data.name;
-      if (brandRef.current) brandRef.current.value = translated.brand || data.brand;
-      if (colorRef.current) colorRef.current.value = translated.color || data.color;
-      if (featureRef.current) featureRef.current.value = data.feature || "";
-
-      setLoading(false);
-    } catch (err) {
-      setError("画像の分析に失敗しました");
-      console.error(err);
-      setLoading(false);
-    }
-  };
-
-  
-  
+  // // Gemini による画像の内容分析と翻訳
   // const analyzeImageWithGemini = async (imageUrl: string) => {
   //   try {
   //     const res = await fetch(`/api/gemini`, {
   //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
   //       body: JSON.stringify({ imageUrl }),
   //     });
 
-  //     const data = await res.json();
+  //     const data = await res.json(); // 返却例: { name, brand, color, feature }
 
-  //     if (nameRef.current) nameRef.current.value = data.name;
-  //     if (brandRef.current) brandRef.current.value = data.brand;
-  //     if (colorRef.current) colorRef.current.value = data.color;
-  //     if (featureRef.current) featureRef.current.value = data.feature;
+  //     // ✅ 翻訳処理（まとめて実行）
+  //     const translated = await translateMultipleToJapaneseWithGemini({
+  //       name: data.name,
+  //       brand: data.brand,
+  //       color: data.color,
+  //     });
+
+  //     console.log("翻訳結果:", translated);
+
+  //     // 入力欄に自動入力（翻訳後の値を優先）
+  //     if (nameRef.current) nameRef.current.value = translated.name || data.name;
+  //     if (brandRef.current) brandRef.current.value = translated.brand || data.brand;
+  //     if (colorRef.current) colorRef.current.value = translated.color || data.color;
+  //     if (featureRef.current) featureRef.current.value = data.feature || "";
 
   //     setLoading(false);
   //   } catch (err) {
-  //     setError("Failed to analyze the image");
+  //     setError("画像の分析に失敗しました");
   //     console.error(err);
   //     setLoading(false);
   //   }
   // };
+
+  const analyzeImageWithGemini = async (imageUrl: string) => {
+    try {
+      const res = await fetch(`/api/gemini`, {
+        method: "POST",
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      const data = await res.json();
+
+      if (nameRef.current) nameRef.current.value = data.name;
+      if (brandRef.current) brandRef.current.value = data.brand;
+      if (colorRef.current) colorRef.current.value = data.color;
+      if (featureRef.current) featureRef.current.value = data.feature;
+
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to analyze the image");
+      console.error(err);
+      setLoading(false);
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
