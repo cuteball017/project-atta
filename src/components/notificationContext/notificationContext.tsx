@@ -58,7 +58,7 @@ export function NotificationProvider({
       // 현재까지 가장 큰 ID보다 큰 것들만 가져오기
       const { data, error } = await supabase
         .from("request")
-        .select("id")
+        .select("id, product_id")
         .gt("id", latestIdRef.current)
         .order("id", { ascending: true });
 
@@ -73,12 +73,13 @@ export function NotificationProvider({
         if (!isMounted) break;
 
         const newId = row.id;
+        const productId = row.product_id;
         // 알림 디스패치
         dispatch({
           type: "ADD",
           payload: {
-            id: String(newId),
-            message: `새로운 신청(등록ID:${newId})이 추가되었습니다.`,
+            id: String(productId),
+            message: `新しい申請(商品ID:${productId})が追加されました.`,
           },
         });
         // 최신 ID 업데이트
