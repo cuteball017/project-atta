@@ -1,0 +1,123 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  row-gap: 20px;
+}
+
+.inputContainer {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+}
+
+.inputBox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.inputBox label {
+  width: 80px; /* ラベルの固定幅を設定 */
+  text-align: left;
+  margin-right: 10px; /* ラベルと入力フィールドの間にスペースを追加 */
+}
+
+.inputBox input {
+  flex: 1; /* 入力フィールドが残りのスペースを占めるように設定 */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.inputBox input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
+}
+
+.button {
+  padding: 10px 20px;
+  border: 1px solid #ff69b4; /* ピンク色のボーダー */
+  border-radius: 5px;
+  background-color: #ff69b4; /* ピンク色の背景 */
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+
+.button:hover {
+  background-color: #ff1493; /* 濃いピンク色の背景 */
+  border-color: #ff1493; /* 濃いピンク色のボーダー */
+  box-shadow: 0 0 5px rgba(255, 20, 147, 0.5); /* 濃いピンク色のシャドウ */
+}
+
+.button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 105, 180, 0.5); /* ピンク色のシャドウ */
+}
+
+.selectBox {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}
+
+/* ───────── 신규 추가: 선택 화면 ───────── */
+
+.choiceContainer {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.choiceCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  min-width: 320px;
+}
+
+.choiceTitle {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.choiceButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* 기존 버튼과 톤을 맞춘 보조 버튼(아웃라인) */
+.secondaryButton {
+  padding: 10px 20px;
+  border: 1px solid #ff69b4;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #ff1493;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.secondaryButton:hover {
+  background-color: #ffe4f1;
+  border-color: #ff1493;
+  color: #ff1493;
+  box-shadow: 0 0 5px rgba(255, 20, 147, 0.25);
+}
