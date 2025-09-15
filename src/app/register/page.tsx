@@ -37,10 +37,10 @@ function ManualRegisterForm() {
     });
 
     if (res.ok) {
-      alert("등록했습니다");
+      alert("登録しました");
       router.push("/");
     } else {
-      alert("등록에 실패했습니다");
+      alert("登録に失敗しました");
       router.push("/");
     }
   };
