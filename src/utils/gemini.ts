@@ -1,3 +1,5 @@
+export const runtime = "nodejs" 
+
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 export const gemini = new ChatGoogleGenerativeAI({
