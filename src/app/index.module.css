@@ -1,624 +1,364 @@
-/* 🔹 ページ全体のラッパー */
-.pageWrapper {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #f5f5f5;
+/* ========== Base ========== */
+.pageWrapper{width:100%;min-height:100vh;background:#f5f5f5;}
+.container{width:95%;max-width:1400px;margin:0 auto;padding:20px;padding-bottom:80px;}
+
+.resultsContainer{margin-top:20px;}
+.resultsHeader{margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #e0e0e0;}
+.resultsTitle{font-size:18px;font-weight:700;color:#333;}
+
+.filterContainer{
+  display:flex;flex-direction:column;gap:15px;padding:15px;background:#fff;
+  border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:20px;
+}
+.searchSection{display:flex;flex-wrap:wrap;gap:25px;}
+.searchBarWrapper{flex:2;min-width:200px;}
+.categoryWrapper{flex:1;min-width:150px;}
+
+.filterLabel{display:block;font-size:14px;font-weight:500;margin-bottom:5px;color:#333;}
+.searchBar,.selectBox{
+  width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:4px;
+  margin-top:5px;box-sizing:border-box;
+}
+.searchBar:focus,.selectBox:focus{border-color:#e95c66;box-shadow:0 0 5px rgba(233,92,102,.3);outline:none;}
+
+.dateFilter{display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+.dateFilterRow{display:flex;flex-direction:column;gap:6px;}
+.dateInput{padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;}
+.dateInput:focus{border-color:#e95c66;outline:none;}
+.dateSeparator{font-size:16px;color:#666}
+
+/* ▼ 返却済み非表示 ボタン */
+.hideCompletedButton{
+  padding:10px 14px;font-size:14px;background:#f0f0f0;color:#333;border:2px solid #ddd;border-radius:8px;
+  cursor:pointer;transition:all .2s ease;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;white-space:nowrap;
+}
+.hideCompletedButton:hover{background:#e0e0e0;}
+.hideCompletedButton.active{background:#e95c66;color:#fff;border-color:#e95c66;}
+.hideCompletedButton.active:hover{background:#d94c58;}
+
+/* ========== List ========== */
+.productLists{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:16px;list-style:none;padding:0;margin-bottom:100px;
+}
+.productItem{
+  display:flex;background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer;padding:12px;text-align:left;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.productItem:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 4px 10px rgba(0,0,0,.1);}
+
+.productImageContainer{width:150px;height:150px;flex-shrink:0;overflow:hidden;border-radius:10px;}
+.productImage{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+
+.productDetails{flex:1;padding:12px;display:flex;flex-direction:column;}
+.productId{font-size:12px;color:#666;margin-bottom:4px;}
+.productName{font-size:16px;font-weight:600;margin-bottom:8px;color:#333;}
+.productInfo{font-size:14px;color:#555;margin-bottom:4px;}
+.label{font-weight:500;color:#666;}
+.productDate{margin-top:auto;font-size:12px;color:#888;text-align:right;}
+
+/* 返却済み */
+.returnCompletedLabel{color:green;font-weight:700;margin-top:8px;}
+.returnedItem{background:#e1f7e7;}
+.alreadyReturned{text-align: center; font-size:13px;color:green;font-weight:700;margin-top:6px;}
+
+/* ========== Modal ========== */
+.modalOverlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;
+}
+.modal{
+  background:#fff;width:80%;max-width:900px;border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);position:relative;animation:fadeIn .25s ease;padding:8px;
+
+  /* 切り防止 */
+  max-height:90vh;
+  overflow-y:auto;
+
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-bottom:30px;
+}
+.modalContent{display:flex;gap:0;}
+.closeButton{
+  position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.85);border:none;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1001;
+}
+.closeButton:hover{background:#fff;color:#d00;}
+
+.modalImageContainer{
+  width:40%;min-width:320px;display:flex;align-items:center;justify-content:center;background:#f9f9f9;padding:20px;
+}
+.modalImageBox{
+  position:relative;width:100%;max-width:380px;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.modalImage{position:absolute !important;inset:0 !important;object-fit:contain !important;}
+
+.modalDetails{flex:1;padding:24px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;}
+.modalTitle{font-size:24px;font-weight:700;color:#333;margin-bottom:16px;text-align:left;}
+.modalInfo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;}
+.modalInfoItem{font-size:15px;color:#333;line-height:1.4;}
+.modalLabel{font-weight:700;color:#555;margin-right:6px;}
+
+.modalButtons{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap;}
+.modalButton{
+  padding:12px 16px;font-size:15px;border:none;border-radius:8px;background:#e95c66;color:#fff;cursor:pointer;transition:background .2s ease;
+  min-width:110px;text-align:center;
+}
+.modalButton:hover{background:#d94c58;}
+
+.returnModalImageBox{
+  position:relative;width:220px;height:220px;margin:10px auto 16px;border-radius:12px;overflow:hidden;background:#f7f7f7;
+}
+.returnModalText{text-align:center;padding-top:5px;}
+.confirmMessage{font-weight: bold;}
+
+.loading,.error{text-align:center;padding:20px;font-size:18px;font-weight:700;color:#e53935;margin-top:20px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.productDetails,.modalDetails,.modalInfoItem,.resultsTitle{
+  writing-mode:horizontal-tb;overflow-wrap:anywhere;word-break:break-word;
 }
 
-/* 🔹 メインコンテナ */
-.container {
-  width: 95%;
-  max-width: 1400px;
+/* ✅ 署名領域 */
+.signatureWrapper{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:visible;
+  margin-top:10px;
+}
+.signatureCanvas{
+  width:90%;
+  max-width:500px;
+  height:180px;
+  border:2px dashed #aaa;
+  border-radius:8px;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  cursor:crosshair;
+}
+
+/* ========== Phone (<=767px) ========== */
+@media (max-width:767px){
+  .container{width:100%;max-width:520px;padding:10px;margin:0 auto 16px;}
+  .productLists{grid-template-columns:1fr;}
+  .productItem{flex-direction:column;align-items:center;text-align:center;}
+  .productImageContainer{width:100%;max-width:160px;height:160px;margin:0 auto 8px;}
+  .productDetails{padding:8px;align-items:center;}
+  .productDate{text-align:center;}
+
+  .modal{width:92%;max-width:560px;max-height:85vh;overflow-y:auto;}
+  .modalContent{flex-direction:column;align-items:center;gap:8px;}
+  .modalImageContainer{width:100%;min-width:0;padding:14px;justify-content:center;}
+  .modalImageBox{max-width:280px;aspect-ratio:1/1;}
+  .modalDetails{padding:14px;}
+  .modalTitle{text-align:center;font-size:20px;}
+  .modalInfo{grid-template-columns:1fr;}
+
+  .hideCompletedButton{width:100%;}
+}
+
+/* ========== Small Tablet (768–1023px) ========== */
+@media (min-width:768px) and (max-width:1023px){
+  .container{max-width:900px;}
+  .productLists{grid-template-columns:repeat(2,1fr);}
+  .productItem{flex-direction:column;align-items:center;text-align:center;}
+  .productImageContainer{width:100%;max-width:180px;height:180px;margin:6px auto;}
+  .productDetails{padding:10px;align-items:center;}
+  .productDate{text-align:center;}
+
+  .modal{width:90%;max-width:980px;}
+  .modalImageContainer{width:42%;min-width:300px;padding:18px;}
+  .modalImageBox{max-width:320px;}
+  .modalDetails{padding:20px;}
+  .modalTitle{font-size:22px;}
+  .modalInfo{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+/* ========== Large Tablet / iPad Pro (1024–1365px) ========== */
+@media (min-width:1024px) and (max-width:1365px){
+  .container{max-width:1180px;}
+  .productLists{grid-template-columns:repeat(3,1fr);}
+  .modal{width:86%;max-width:1100px;}
+  .modalImageContainer{width:40%;min-width:340px;}
+  .modalImageBox{max-width:360px;}
+  .modalInfo{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+/* ========== Desktop (>=1366px) ========== */
+@media (min-width:1366px){ .productLists{grid-template-columns:repeat(3,1fr);} }
+@media (min-width:1600px){ .productLists{grid-template-columns:repeat(4,1fr);} }
+
+
+
+
+/*
+.pageWrapper{width:100%;min-height:100vh;background:#f5f5f5;}
+.container{width:95%;max-width:1400px;margin:0 auto;padding:20px;padding-bottom:80px;}
+
+.resultsContainer{margin-top:20px;}
+.resultsHeader{margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #e0e0e0;}
+.resultsTitle{font-size:18px;font-weight:700;color:#333;}
+
+.filterContainer{
+  display:flex;flex-direction:column;gap:15px;padding:15px;background:#fff;
+  border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:20px;
+}
+.searchSection{display:flex;flex-wrap:wrap;gap:25px;}
+.searchBarWrapper{flex:2;min-width:200px;}
+.categoryWrapper{flex:1;min-width:150px;}
+
+.filterLabel{display:block;font-size:14px;font-weight:500;margin-bottom:5px;color:#333;}
+.searchBar,.selectBox{
+  width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:4px;
+  margin-top:5px;box-sizing:border-box;
+}
+.searchBar:focus,.selectBox:focus{border-color:#e95c66;box-shadow:0 0 5px rgba(233,92,102,.3);outline:none;}
+
+.dateFilter{display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+.dateInput{padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;}
+.dateInput:focus{border-color:#e95c66;outline:none;}
+.dateSeparator{font-size:16px;color:#666}
+
+.productLists{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:16px;list-style:none;padding:0;margin-bottom:100px;
+}
+.productItem{
+  display:flex;background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer;padding:12px;text-align:left;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.productItem:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 4px 10px rgba(0,0,0,.1);}
+
+.productImageContainer{width:150px;height:150px;flex-shrink:0;overflow:hidden;border-radius:10px;}
+.productImage{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+
+.productDetails{flex:1;padding:12px;display:flex;flex-direction:column;}
+.productId{font-size:12px;color:#666;margin-bottom:4px;}
+.productName{font-size:16px;font-weight:600;margin-bottom:8px;color:#333;}
+.productInfo{font-size:14px;color:#555;margin-bottom:4px;}
+.label{font-weight:500;color:#666;}
+.productDate{margin-top:auto;font-size:12px;color:#888;text-align:right;}
+
+.modalOverlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;
+}
+.modal{
+  background:#fff;width:80%;max-width:900px;border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);position:relative;animation:fadeIn .25s ease;padding:8px;
+}
+.modalContent{display:flex;gap:0;}
+.closeButton{
+  position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.85);border:none;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1001;
+}
+.closeButton:hover{background:#fff;color:#d00;}
+
+.modalImageContainer{
+  width:40%;min-width:320px;display:flex;align-items:center;justify-content:center;background:#f9f9f9;padding:20px;
+}
+.modalImageBox{
+  position:relative;width:100%;max-width:380px;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.modalImage{position:absolute !important;inset:0 !important;object-fit:contain !important;}
+
+.modalDetails{flex:1;padding:24px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;}
+.modalTitle{font-size:24px;font-weight:700;color:#333;margin-bottom:16px;text-align:left;}
+.modalInfo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;}
+.modalInfoItem{font-size:15px;color:#333;line-height:1.4;}
+.modalLabel{font-weight:700;color:#555;margin-right:6px;}
+
+.modalButtons{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap;}
+.modalButton{
+  padding:12px 16px;font-size:15px;border:none;border-radius:8px;background:#e95c66;color:#fff;cursor:pointer;transition:background .2s ease;
+  min-width:110px;text-align:center;
+}
+.modalButton:hover{background:#d94c58;}
+
+.returnModalImageBox{
+  position:relative;width:220px;height:220px;margin:10px auto 16px;border-radius:12px;overflow:hidden;background:#f7f7f7;
+}
+.returnModalText{text-align:center;padding-top:5px;}
+
+.loading,.error{text-align:center;padding:20px;font-size:18px;font-weight:700;color:#e53935;margin-top:20px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.returnCompletedLabel{color:green;font-weight:700;margin-top:8px;}
+.returnedItem{background:#e1f7e7;}
+
+.productDetails,.modalDetails,.modalInfoItem,.resultsTitle{
+  writing-mode:horizontal-tb;overflow-wrap:anywhere;word-break:break-word;
+}
+
+.signatureWrapper {
+  width: 100%;
+  max-width: 400px;
   margin: 0 auto;
-  padding: 20px;
-  padding-bottom: 80px;
 }
 
-/* 🔹 検索結果コンテナ */
-.resultsContainer {
-  margin-top: 20px;
-}
-
-.resultsHeader {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.resultsTitle {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
-
-/* 🔹 フィルターコンテナ */
-.filterContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding: 15px;
-  background-color: white;
+.signatureCanvas {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 2 / 1;
+  border: 3px solid #aaa;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-/* 🔹 検索セクション */
-.searchSection {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px; /* Increased gap between search and category */
-}
-
-.searchBarWrapper {
-  flex: 2;
-  min-width: 200px;
-}
-
-.categoryWrapper {
-  flex: 1;
-  min-width: 150px;
-}
-
-/* 🔹 検索バー */
-.searchBar {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-top: 5px;
-  box-sizing: border-box; /* Ensure padding is included in width */
-}
-
-.searchBar:focus {
-  border-color: #e95c66;
-  box-shadow: 0px 0px 5px rgba(233, 92, 102, 0.3);
-  outline: none;
-}
-
-/* 🔹 フィルターラベル */
-.filterLabel {
+  background-color: #fff;
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 5px;
-  color: #333;
 }
 
-/* 🔹 セレクトボックス */
-.selectBox {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  margin-top: 5px;
-  box-sizing: border-box; /* Ensure padding is included in width */
+@media (max-width:767px){
+  .container{width:100%;max-width:520px;padding:10px;margin:0 auto 16px;}
+  .productLists{grid-template-columns:1fr;}
+  .productItem{flex-direction:column;align-items:center;text-align:center;}
+  .productImageContainer{width:100%;max-width:160px;height:160px;margin:0 auto 8px;}
+  .productDetails{padding:8px;align-items:center;}
+  .productDate{text-align:center;}
+
+  .modal{width:92%;max-width:560px;max-height:85vh;overflow-y:auto;}
+  .modalContent{flex-direction:column;align-items:center;gap:8px;}
+  .modalImageContainer{width:100%;min-width:0;padding:14px;justify-content:center;}
+  .modalImageBox{max-width:280px;aspect-ratio:1/1;}
+  .modalDetails{padding:14px;}
+  .modalTitle{text-align:center;font-size:20px;}
+  .modalInfo{grid-template-columns:1fr;}
 }
 
-.selectBox:focus {
-  border-color: #e95c66;
-  outline: none;
+@media (min-width:768px) and (max-width:1023px){
+  .container{max-width:900px;}
+  .productLists{grid-template-columns:repeat(2,1fr);}
+  .productItem{
+    flex-direction:column;align-items:center;text-align:center;
+  }
+  .productImageContainer{
+    width:100%;max-width:180px;height:180px;margin:6px auto;
+  }
+  .productDetails{
+    padding:10px;align-items:center;
+  }
+  .productDate{ text-align:center; }
+
+  .modal{width:90%;max-width:980px;}
+  .modalImageContainer{width:42%;min-width:300px;padding:18px;}
+  .modalImageBox{max-width:320px;}
+  .modalDetails{padding:20px;}
+  .modalTitle{font-size:22px;}
+  .modalInfo{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 
-/* 🔹 日付フィルター */
-.dateFilter {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+@media (min-width:1024px) and (max-width:1365px){
+  .container{max-width:1180px;}
+  .productLists{grid-template-columns:repeat(3,1fr);}
+  .modal{width:86%;max-width:1100px;}
+  .modalImageContainer{width:40%;min-width:340px;}
+  .modalImageBox{max-width:360px;}
+  .modalInfo{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 
-.dateInput {
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box; /* Ensure padding is included in width */
-}
+@media (min-width:1366px){ .productLists{grid-template-columns:repeat(3,1fr);} }
+@media (min-width:1600px){ .productLists{grid-template-columns:repeat(4,1fr);} }
+*/
 
-.dateInput:focus {
-  border-color: #e95c66;
-  outline: none;
-}
 
-.dateSeparator {
-  font-size: 16px;
-  color: #666;
-}
-
-/* 🔹 商品リスト */
-.productLists {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  list-style: none;
-  padding: 0;
-  margin-bottom: 100px; /* 네비게이션 바 공간 확보 */
-}
-
-/* 🔹 商品アイテム */
-.productItem {
-  display: flex;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  padding: 12px;
-  text-align: center;
-  border: 1px solid #ddd;
-  transition: all 0.3s ease-in-out;
-}
-
-.productItem:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* 🔹 商品画像コンテナ */
-.productImageContainer {
-  width: 150px;
-  height: 150px;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.productImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-/* 🔹 商品詳細 */
-.productDetails {
-  flex: 1;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-}
-
-.productId {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-.productName {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.productInfo {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 4px;
-}
-
-.label {
-  font-weight: 500;
-  color: #666;
-}
-
-.productDate {
-  margin-top: auto;
-  font-size: 12px;
-  color: #888;
-  text-align: right;
-}
-
-/* 🔹 モーダル */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal {
-  background: white;
-  width: 80%;
-  max-width: 900px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  animation: fadeIn 0.3s ease;
-  position: relative;
-}
-
-.modalContent {
-  display: flex;
-  padding: 0;
-}
-
-.modalImageContainer {
-  width: 40%;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f9f9f9;
-}
-
-.modalImage {
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-.modalDetails {
-  flex: 1;
-  padding: 25px;
-}
-
-.modalTitle {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.modalInfo {
-  display: grid;
-  gap: 12px;
-}
-
-.modalInfoItem {
-  font-size: 16px;
-  color: #333;
-}
-
-.modalLabel {
-  font-weight: 600;
-  color: #555;
-  margin-right: 5px;
-}
-
-.closeButton {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1001;
-}
-
-.closeButton:hover {
-  background: rgba(255, 255, 255, 1);
-  color: red;
-}
-
-/* 🔹 ローディングとエラー */
-.loading,
-.error {
-  text-align: center;
-  padding: 20px;
-  font-size: 16px;
-  color: #666;
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: red;
-  margin-top: 20px;
-}
-
-.error {
-  color: #e53935;
-}
-
-/* 🔹 アニメーション */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 🔹 設定アイコン */
-.settingsIcon {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  cursor: pointer;
-  z-index: 10;
-}
-
-/* 🔹 レスポンシブデザイン */
-/* ラップトップ・デスクトップ (1200px以上) */
-@media (min-width: 1200px) {
-  .productLists {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .filterContainer {
-    flex-direction: row;
-    align-items: flex-end;
-  }
-
-  .searchSection {
-    flex: 3;
-  }
-
-  .dateFilter {
-    flex: 2;
-    justify-content: flex-end;
-  }
-}
-
-/* 大きなデスクトップ (1600px以上) */
-@media (min-width: 1600px) {
-  .productLists {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* タブレット (768px以上) */
-@media (min-width: 768px) and (max-width: 1199px) {
-  .productLists {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* すべてのモバイルデバイス (767px以下) - 一貫したモバイルUI */
-@media (max-width: 767px) {
-  /* 共通モバイルスタイル */
-  .container {
-    width: 100%;
-    padding: 10px;
-    max-width: 500px;
-    margin: 0 auto;
-  }
-
-  .productLists {
-    grid-template-columns: repeat(1, 1fr);
-  }
-
-  /* 検索セクション */
-  .searchBarWrapper,
-  .categoryWrapper {
-    width: 100%;
-    min-width: 100%;
-  }
-
-  .searchSection {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  /* 日付フィルター - 2行に分割 */
-  .dateFilter {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-
-  .dateFilterRow {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .dateInput {
-    flex: 1;
-  }
-
-  /* モーダル - 垂直レイアウト */
-  .modal {
-    width: 90%;
-    height: auto;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  .modalContent {
-    flex-direction: column;
-  }
-
-  .modalImageContainer {
-    width: 100%;
-    padding: 15px;
-    display: flex;
-    justify-content: center;
-  }
-
-  .modalImage {
-    max-width: 250px;
-    max-height: 250px;
-    margin: 0 auto;
-  }
-
-  .modalDetails {
-    padding: 15px;
-  }
-
-  .modalTitle {
-    font-size: 20px;
-    text-align: center;
-  }
-
-  .modalInfoItem {
-    font-size: 14px;
-    text-align: left;
-  }
-
-  /* 商品アイテム */
-  .productItem {
-    flex-direction: column;
-  }
-
-  .productImageContainer {
-    width: 100%;
-    height: auto;
-    margin-bottom: 10px;
-  }
-
-  .productDetails {
-    width: 100%;
-    padding: 0;
-  }
-}
-
-/* iPad (768px以上1023px以下) - タブレット用UI */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .container {
-    width: 100%;
-    padding: 10px;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-
-  .productLists {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .productItem {
-    flex-direction: column;
-  }
-
-  .productImageContainer {
-    width: 100%;
-    height: auto;
-    margin-bottom: 10px;
-  }
-
-  .productDetails {
-    width: 100%;
-    padding: 0;
-  }
-
-  /* 検索セクション */
-  .searchBarWrapper,
-  .categoryWrapper {
-    width: 100%;
-    min-width: 100%;
-  }
-
-  .searchSection {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  /* 日付フィルター - 2行に分割 */
-  .dateFilter {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-
-  .dateFilterRow {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .dateInput {
-    flex: 1;
-  }
-
-  /* モーダル - 垂直レイアウト */
-  .modal {
-    width: 90%;
-    height: auto;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  .modalContent {
-    flex-direction: column;
-  }
-
-  .modalImageContainer {
-    width: 100%;
-    padding: 15px;
-    display: flex;
-    justify-content: center;
-  }
-
-  .modalImage {
-    max-width: 250px;
-    max-height: 250px;
-    margin: 0 auto;
-  }
-
-  .modalDetails {
-    padding: 15px;
-  }
-
-  .modalTitle {
-    font-size: 20px;
-    text-align: center;
-  }
-
-  .modalInfoItem {
-    font-size: 14px;
-    text-align: left;
-  }
-}
-
-/* モバイル (767px以下) - 画像サイズ調整 */
-@media (max-width: 767px) {
-  .productImageContainer {
-    width: 100%;
-    height: auto;
-    max-width: 130px; /* 画像サイズを小さく調整 */
-    max-height: 130px;
-    margin: 0 auto 10px;
-  }
-
-  .productImage {
-    max-width: 100%;
-    max-height: 100%;
-  }
-
-  .modalImage {
-    max-width: 200px; /* モーダル内画像サイズを小さく */
-    max-height: 200px;
-  }
-
-  .productItem {
-    flex-direction: column;
-    padding: 10px;
-  }
-
-  .productDetails {
-    width: 100%;
-    padding: 8px 0 0 0;
-  }
-}
-
-/* Remove the unnecessary .settingsIcon class since we're not using it */
-.settingsIcon {
-  display: none;
-}
 
 
 

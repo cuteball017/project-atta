@@ -3,9 +3,9 @@ import { supabase } from "@/utils/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    // クライアントから signatureData および id が送信されることを想定
-    // 例: { "signatureData": "data:image/png;base64,....", "id": 123 }
-    const { signatureData, id } = await req.json(); 
+    // クライアントから signatureData および product_id が送信されることを想定
+    // 例: { "signatureData": "data:image/png;base64,....", "product_id": 123 }
+    const { signatureData, product_id } = await req.json(); 
     if (!signatureData) {
       return NextResponse.json({ error: "署名データが存在しません" }, { status: 400 });
     }
@@ -28,12 +28,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // 3) request テーブルの sig_url カラムに fileName を保存（id が存在する場合のみ）
-    if (id) {
+    // 3) lost_items テーブルの sig_url カラムに fileName を保存（product_id が存在する場合のみ）
+    if (product_id) {
       const { error: updateError } = await supabase
-        .from("request")                  // 対象テーブル
+        .from("lost_items")                  // 対象テーブル
         .update({ sig_url: fileName })    // sig_url を更新
-        .eq("id", id);                    // 該当IDの行を対象
+        .eq("id", product_id);                    // 該当IDの行を対象
 
       if (updateError) {
         console.error("Supabase DB 更新エラー:", updateError);

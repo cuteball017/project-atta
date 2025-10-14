@@ -1,9 +1,12 @@
 "use client"
-import { useState, useEffect } from "react"
+
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import styles from "./index.module.css"
 import NavBar from "@/components/navBar/navBar"
+import SignatureCanvas from "react-signature-canvas"
 
+// ページでブラウザキャッシュを使わない設定
 export const fetchCache = "force-no-store"
 
 interface Product {
@@ -16,37 +19,51 @@ interface Product {
   img_url: string
   created_at: string
   category: string
+  applicant?: string | null
+  return_at?: string | null
 }
 
 export default function Home() {
+  // 一覧と検索結果
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [searchQuery, setSearchQuery] = useState("") // 検索キーワード
-  const [selectedCategory, setSelectedCategory] = useState("") // カテゴリーフィルター
-  const [startDate, setStartDate] = useState("") // 開始日
-  const [endDate, setEndDate] = useState("") // 終了日
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null) // モーダルに表示する商品
+
+  // フィルタ
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [hideCompleted, setHideCompleted] = useState(false) // 返却済み非表示
+
+  // 詳細モーダル
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+  // 状態系
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Check if device is mobile
+  // 返却処理用の状態
+  const [showReturnModal, setShowReturnModal] = useState(false)
+  const [returnStep, setReturnStep] = useState<1 | 2 | 3>(1) // 1:氏名・日付入力, 2:確認(はい/いいえ), 3:署名と完了
+  const [returnName, setReturnName] = useState("")
+  const [returnDate, setReturnDate] = useState("")
+  const [userChoice, setUserChoice] = useState<"" | "はい" | "いいえ">("")
+  const [isReturnCompleted, setIsReturnCompleted] = useState(false)
+
+  // 署名パッド
+  const padRef = useRef<InstanceType<typeof SignatureCanvas> | null>(null)
+  const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null)
+
+  // 画面幅によるモバイル判定
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024)
-    }
-
-    // Initial check
-    checkScreenSize()
-
-    // Add event listener for window resize
-    window.addEventListener("resize", checkScreenSize)
-
-    // Cleanup
-    return () => window.removeEventListener("resize", checkScreenSize)
+    const onResize = () => setIsMobile(window.innerWidth < 1024)
+    onResize()
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
   }, [])
 
-  // 🔹 データ取得（最新登録順にソートし、最大30件表示）
+  // データ取得（最新順で30件までを初期表示）
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -55,121 +72,203 @@ export default function Home() {
 
         const response = await fetch("/api/productList", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Cache-Control": "no-cache",
-          },
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
         })
-
-        if (!response.ok) {
-          throw new Error("データの取得に失敗しました")
-        }
+        if (!response.ok) throw new Error("データの取得に失敗しました")
 
         const result = await response.json()
-
-        // 🔹 最新登録順にソートし、最大30件を保存
-        const sortedProducts = result.data.sort(
-          (a: Product, b: Product) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        const sorted: Product[] = result.data.sort(
+          (a: Product, b: Product) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         )
-
-        setProducts(result.data)
-        setFilteredProducts(sortedProducts.slice(0, 30))
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "エラーが発生しました")
+        setProducts(sorted)
+        setFilteredProducts(sorted.slice(0, 30))
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "エラーが発生しました")
       } finally {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
 
-  // 🔹 検索機能
+  
+
+  // 「返却済み(完了)」
+  const isReturned = (p: Product) => Boolean((p.applicant ?? "").trim() && (p.return_at ?? "").trim())
+
+  // 検索・フィルタ
   useEffect(() => {
     let base = [...products].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
 
-    const hasSearch = searchQuery.trim() !== "";
-    const hasDate = startDate !== "" || endDate !== "";
+    const hasSearch = searchQuery.trim() !== ""
+    const hasDate = startDate !== "" || endDate !== ""
 
-    // 🔹 基本検索
     if (hasSearch) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase()
       base = base.filter((p) =>
-        [p.id, p.name, p.brand, p.color, p.feature, p.place, p.category]
-          .some((v) => String(v).toLowerCase().includes(q))
-      );
+        [p.id, p.name, p.brand, p.color, p.feature, p.place, p.category].some((v) =>
+          String(v).toLowerCase().includes(q),
+        ),
+      )
     }
 
-    // 🔹 カテゴリー検索
     if (selectedCategory) {
-      base = base.filter((p) => p.category === selectedCategory);
+      base = base.filter((p) => p.category === selectedCategory)
     }
 
-    // 🔹 日付検索（ローカル日付の1日範囲）
     if (startDate || endDate) {
-      const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
-      const end   = endDate   ? new Date(`${endDate}T23:59:59.999`) : null;
+      const start = startDate ? new Date(`${startDate}T00:00:00`) : null
+      const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null
       base = base.filter((p) => {
-        const createdAt = new Date(p.created_at);
-        return (!start || createdAt >= start) && (!end || createdAt <= end);
-      });
+        const createdAt = new Date(p.created_at)
+        return (!start || createdAt >= start) && (!end || createdAt <= end)
+      })
     }
 
-    // 🔹 検索/日付がない時は最新順で30件だけ
-    if (!hasSearch && !hasDate) {
-      base = base.slice(0, 30);
+    // 返却済み(完了)項目隠し
+    if (hideCompleted) {
+      base = base.filter((p) => !isReturned(p))
     }
 
-    setFilteredProducts(base);
-  }, [searchQuery, selectedCategory, startDate, endDate, products]);
+    if (!hasSearch && !hasDate && !hideCompleted) base = base.slice(0, 30)
 
-  // 🔹 ESCキーでモーダルを閉じる機能
+    setFilteredProducts(base)
+  }, [searchQuery, selectedCategory, startDate, endDate, hideCompleted, products])
+
+  // Escで各種モーダルを閉じる
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         setSelectedProduct(null)
+        setShowReturnModal(false)
+        setReturnStep(1)
+        setUserChoice("")
       }
     }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
   }, [])
+
+  // 返却処理：ステップ1からステップ2へ
+  const goReturnStep2 = () => {
+    if (!returnName.trim() || !returnDate.trim()) {
+      alert("氏名と日付を入力してください。")
+      return
+    }
+    setReturnStep(2)
+    setUserChoice("")
+  }
+
+  // 確認「はい」
+  const handleYes = () => setUserChoice("はい")
+
+  // 確認「いいえ」
+  const handleNo = () => {
+    setUserChoice("いいえ")
+    setShowReturnModal(false)
+    setReturnName("")
+    setReturnDate("")
+    setReturnStep(1)
+  }
+
+  // 署名のクリア
+  const clearSignature = () => {
+    padRef.current?.clear()
+    setSignatureDataURL(null)
+  }
+
+  // 署名の保存
+  const saveSignature = async () => {
+    const dataURL = padRef.current?.toDataURL("image/png")
+    if (!dataURL) {
+      alert("署名がありません。")
+      return
+    }
+    setSignatureDataURL(dataURL)
+    try {
+      const res = await fetch(`/api/signatureSave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signatureData: dataURL, product_id: selectedProduct?.id }),
+      })
+      if (!res.ok) throw new Error("署名保存に失敗しました")
+      alert("署名を保存しました。")
+    } catch (err) {
+      console.error(err)
+      alert("署名保存中にエラーが発生しました")
+    }
+  }
+
+  // 返却完了処理
+  const completeReturn = async () => {
+    if (!selectedProduct) return
+    try {
+      const res = await fetch("/api/returnRequest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: selectedProduct.id,
+          applicant: returnName,
+          return_at: returnDate
+        }),
+      })
+      if (!res.ok) throw new Error("返却処理に失敗しました")
+
+      // UI 即時反映: applicant/return_at を埋めて完了状態に表示
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === selectedProduct.id ? { ...p, applicant: returnName, return_at: returnDate } : p,
+        ),
+      )
+      setFilteredProducts((prev) =>
+        prev.map((p) =>
+          p.id === selectedProduct.id ? { ...p, applicant: returnName, return_at: returnDate } : p,
+        ),
+      )
+      setIsReturnCompleted(true)
+      setSelectedProduct(null)
+      window.location.reload()
+      alert("返却処理が完了しました")
+    } catch (err) {
+      console.error(err)
+      alert("エラーが発生しました")
+    }
+  }
+
+  // 返却処理モーダルを閉じる
+  const closeReturnModal = () => {
+    setShowReturnModal(false)
+    setReturnStep(1)
+    setUserChoice("")
+    setReturnName("")
+    setReturnDate("")
+    clearSignature()
+    setIsReturnCompleted(false)
+  }
 
   return (
     <div className={styles.pageWrapper}>
-      {/* No additional settings icon needed - using the original one */}
-
       <div className={styles.container}>
-        {/* 🔹 検索フィルターUI */}
         <div className={styles.filterContainer}>
           <div className={styles.searchSection}>
-            {/* 🔍 検索バー */}
             <div className={styles.searchBarWrapper}>
-              <label htmlFor="searchQuery" className={styles.filterLabel}>
-                検索
-              </label>
+              <label htmlFor="searchQuery" className={styles.filterLabel}>検索</label>
               <input
-                type="text"
                 id="searchQuery"
-                name="searchQuery"
-                placeholder="商品名やブランドを入力"
-                title="検索欄に文字を入力してください"
                 className={styles.searchBar}
+                placeholder="商品名やブランドを入力"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            {/* 🔹 カテゴリー選択 */}
             <div className={styles.categoryWrapper}>
-              <label htmlFor="category" className={styles.filterLabel}>
-                カテゴリー
-              </label>
+              <label htmlFor="category" className={styles.filterLabel}>カテゴリー</label>
               <select
                 id="category"
-                name="category"
                 className={styles.selectBox}
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -188,7 +287,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 🔹 日付検索フィールド - モバイルでは2行に分割 */}
           {isMobile ? (
             <div className={styles.dateFilter}>
               <div className={styles.dateFilterRow}>
@@ -196,9 +294,7 @@ export default function Home() {
                 <input
                   type="date"
                   id="startDate"
-                  name="startDate"
                   className={styles.dateInput}
-                  title="開始日を選択してください"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
@@ -208,13 +304,19 @@ export default function Home() {
                 <input
                   type="date"
                   id="endDate"
-                  name="endDate"
                   className={styles.dateInput}
-                  title="終了日を選択してください"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
+
+              {/* ▼ 返却済み非表示ボタン */}
+              <button
+                className={`${styles.hideCompletedButton} ${hideCompleted ? styles.active : ""}`}
+                onClick={() => setHideCompleted((s) => !s)}
+              >
+                {hideCompleted ? "✓ " : ""}返却済みを非表示
+              </button>
             </div>
           ) : (
             <div className={styles.dateFilter}>
@@ -222,132 +324,1140 @@ export default function Home() {
               <input
                 type="date"
                 id="startDate"
-                name="startDate"
                 className={styles.dateInput}
-                title="開始日を選択してください"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
-
               <span className={styles.dateSeparator}>-</span>
-
               <label htmlFor="endDate">終了日</label>
               <input
                 type="date"
                 id="endDate"
-                name="endDate"
                 className={styles.dateInput}
-                title="終了日を選択してください"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
+
+              {/* ▼ 返却済み非表示ボタン */}
+              <button
+                className={`${styles.hideCompletedButton} ${hideCompleted ? styles.active : ""}`}
+                onClick={() => setHideCompleted((s) => !s)}
+              >
+                {hideCompleted ? "✓ " : ""}返却済みを非表示
+              </button>
             </div>
           )}
         </div>
 
-        {/* ローディング表示 */}
         {loading && <p className={styles.loading}>Loading...</p>}
-
-        {/* エラーメッセージ表示 */}
         {error && <p className={styles.error}>⚠️ {error}</p>}
 
-        {/* 🔹 商品リスト */}
         {!loading && !error && (
           <div className={styles.resultsContainer}>
             <div className={styles.resultsHeader}>
               <h2 className={styles.resultsTitle}>検索結果: {filteredProducts.length}件</h2>
             </div>
             <ul className={styles.productLists}>
-              {filteredProducts.map((product) => (
-                <li key={product.id} className={styles.productItem} onClick={() => setSelectedProduct(product)}>
-                  <div className={styles.productImageContainer}>
-                    <Image
-                      src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${product.img_url}`}
-                      alt="Product Image"
-                      width={150}
-                      height={150}
-                      className={styles.productImage}
-                    />
-                  </div>
-                  <div className={styles.productDetails}>
-                    <div className={styles.productId}>ID: {product.id}</div>
-                    <div className={styles.productName}>{product.name}</div>
-                    <div className={styles.productInfo}>
-                      <span className={styles.label}>ブランド:</span> {product.brand}
+              {filteredProducts.map((product) => {
+                const returned = isReturned(product)
+                return (
+                  <li
+                    key={product.id}
+                    className={returned ? `${styles.productItem} ${styles.returnedItem}` : styles.productItem}
+                    onClick={() => setSelectedProduct(product)}
+                    title={returned ? "返却完了（参照のみ）" : "詳細を表示"}
+                  >
+                    <div className={styles.productImageContainer}>
+                      <Image
+                        src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${product.img_url}`}
+                        alt="Product Image"
+                        width={150}
+                        height={150}
+                        className={styles.productImage}
+                        sizes="(max-width: 767px) 45vw, 150px"
+                      />
                     </div>
-                    <div className={styles.productInfo}>
-                      <span className={styles.label}>場所:</span> {product.place}
+                    <div className={styles.productDetails}>
+                      <div className={styles.productId}>ID: {product.id}</div>
+                      <div className={styles.productName}>{product.name}</div>
+                      <div className={styles.productInfo}><span className={styles.label}>ブランド:</span> {product.brand}</div>
+                      <div className={styles.productInfo}><span className={styles.label}>場所:</span> {product.place}</div>
+                      <div className={styles.productInfo}><span className={styles.label}>カテゴリー:</span> {product.category}</div>
+                      <div className={styles.productDate}>{new Date(product.created_at).toLocaleDateString()}</div>
+                      {returned && <div className={styles.returnCompletedLabel}>返却完了</div>}
                     </div>
-                    <div className={styles.productInfo}>
-                      <span className={styles.label}>カテゴリー:</span> {product.category}
-                    </div>
-                    <div className={styles.productDate}>{new Date(product.created_at).toLocaleDateString()}</div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )}
 
-        {/* 🔹 モーダル（選択された商品の詳細を表示） */}
         {selectedProduct && (
           <div className={styles.modalOverlay} onClick={() => setSelectedProduct(null)}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <button className={styles.closeButton} onClick={() => setSelectedProduct(null)}>
-                ×
-              </button>
+              <button className={styles.closeButton} onClick={() => setSelectedProduct(null)}>×</button>
+
               <div className={styles.modalContent}>
+                {/* 画像 */}
                 <div className={styles.modalImageContainer}>
-                  <Image
-                    src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
-                    alt="Product Image"
-                    width={300}
-                    height={300}
-                    className={styles.modalImage}
-                  />
+                  <div className={styles.modalImageBox}>
+                    <Image
+                      src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
+                      alt="Product Image"
+                      fill
+                      sizes="(max-width: 767px) 90vw, 40vw"
+                      className={styles.modalImage}
+                    />
+                  </div>
                 </div>
+
                 <div className={styles.modalDetails}>
                   <h2 className={styles.modalTitle}>{selectedProduct.name}</h2>
                   <div className={styles.modalInfo}>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>商品ID：</span>
-                      {selectedProduct.id}
-                    </div>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>ブランド：</span>
-                      {selectedProduct.brand}
-                    </div>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>色：</span>
-                      {selectedProduct.color}
-                    </div>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>特徴：</span>
-                      {selectedProduct.feature}
-                    </div>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>場所：</span>
-                      {selectedProduct.place}
-                    </div>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>カテゴリー：</span>
-                      {selectedProduct.category}
-                    </div>
-                    <div className={styles.modalInfoItem}>
-                      <span className={styles.modalLabel}>登録日：</span>
-                      {new Date(selectedProduct.created_at).toLocaleDateString()}
-                    </div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>商品ID：</span>{selectedProduct.id}</div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>ブランド：</span>{selectedProduct.brand}</div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>色：</span>{selectedProduct.color}</div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>特徴：</span>{selectedProduct.feature}</div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>場所：</span>{selectedProduct.place}</div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>カテゴリー：</span>{selectedProduct.category}</div>
+                    <div className={styles.modalInfoItem}><span className={styles.modalLabel}>登録日：</span>{new Date(selectedProduct.created_at).toLocaleDateString()}</div>
                   </div>
+
+                  {isReturned(selectedProduct) ? (
+                    <p className={styles.alreadyReturned}>すでに返却完了されています。</p>
+                  ) : (
+                    <div className={styles.modalButtons}>
+                      <button
+                        className={styles.modalButton}
+                        onClick={() => {
+                          setShowReturnModal(true)
+                          setReturnStep(1)
+                          setUserChoice("")
+                        }}
+                      >
+                        返却処理
+                      </button>
+                      <button className={styles.modalButton} onClick={() => setSelectedProduct(null)}>閉じる</button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
       </div>
+
       <NavBar />
+
+      {showReturnModal && selectedProduct && (
+        <div className={styles.modalOverlay} onClick={closeReturnModal}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeButton} onClick={closeReturnModal}>×</button>
+
+            {/* 返却処理モーダル内 */}
+            <div className={styles.returnModalImageBox}>
+              <Image
+                src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
+                alt="Product Image"
+                fill
+                sizes="200px"
+                className={styles.modalImage}
+              />
+            </div>
+
+            <p className={styles.returnModalText}><strong>商品ID:</strong> {selectedProduct.id}</p>
+            <p className={styles.returnModalText}><strong>名称:</strong> {selectedProduct.name}</p>
+            <p className={styles.returnModalText}><strong>場所:</strong> {selectedProduct.place}</p>
+            <p className={styles.returnModalText}><strong>特徴:</strong> {selectedProduct.feature}</p>
+
+            {returnStep === 1 && (
+              <>
+                <div className={styles.returnModalText}>
+                  <input
+                    type="text"
+                    placeholder="受領者（氏名）"
+                    value={returnName}
+                    onChange={(e) => setReturnName(e.target.value)}
+                  />
+                  <div style={{ height: 5 }}></div>
+                  <input
+                    type="date"
+                    placeholder="返却日"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                  />
+                </div>
+                <div className={styles.modalButtons}>
+                  <button className={styles.modalButton} onClick={goReturnStep2}>次へ</button>
+                  <button className={styles.modalButton} onClick={closeReturnModal}>戻る</button>
+                </div>
+              </>
+            )}
+
+            {returnStep === 2 && (
+              <>
+                <p className={`${styles.confirmMessage} ${styles.returnModalText}`}>
+                  本当に自分のものと間違いないですか？<br />
+                  後々に問題が起きた場合、責任を負うことになりますがよろしいですか？
+                </p>
+
+                {userChoice === "" && (
+                  <div className={styles.modalButtons}>
+                    <button className={styles.modalButton} onClick={handleYes}>はい</button>
+                    <button className={styles.modalButton} onClick={handleNo}>いいえ</button>
+                  </div>
+                )}
+
+                {userChoice === "はい" && (
+                  <div className={styles.modalButtons}>
+                    <button className={styles.modalButton} onClick={() => setReturnStep(3)}>署名へ</button>
+                    <button className={styles.modalButton} onClick={closeReturnModal}>戻る</button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {returnStep === 3 && (
+              <>
+                <br />
+                <div className={styles.signatureWrapper}>
+                  <SignatureCanvas
+                    ref={padRef}
+                    canvasProps={{
+                      className: styles.signatureCanvas,
+                      style: { width: "100%", height: "180px" },
+                    }}
+                  />
+                </div>
+
+                <div className={styles.modalButtons} style={{ marginTop: 10 }}>
+                  <button className={styles.modalButton} onClick={clearSignature}>Clear</button>
+                  <button className={styles.modalButton} onClick={saveSignature}>署名保存</button>
+                </div>
+
+                {signatureDataURL && (
+                  <img
+                    src={signatureDataURL}
+                    alt="signature preview"
+                    style={{ marginTop: 10, border: "1px solid #ccc", width: 200 }}
+                  />
+                )}
+
+                <div className={styles.modalButtons} style={{ marginTop: 10 }}>
+                   {/* 🔸 署名が存在する場合のみボタンを有効 */}
+                    <button
+                      className={styles.modalButton}
+                      onClick={completeReturn}
+                      disabled={!signatureDataURL}
+                      style={{
+                        opacity: signatureDataURL ? 1 : 0.5,
+                        cursor: signatureDataURL ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      返却完了
+                    </button>
+                  <button className={styles.modalButton} onClick={closeReturnModal}>閉じる</button>
+                </div>
+
+                {isReturnCompleted && <p className={styles.returnCompletedLabel}>返却が完了しました。</p>}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
+
+
+
+
+
+
+// "use client"
+
+// import { useState, useEffect, useRef } from "react"
+// import Image from "next/image"
+// import styles from "./index.module.css"
+// import NavBar from "@/components/navBar/navBar"
+// import SignatureCanvas from "react-signature-canvas"
+
+// // ページでブラウザキャッシュを使わない設定
+// export const fetchCache = "force-no-store"
+
+// interface Product {
+//   id: number
+//   name: string
+//   brand: string
+//   color: string
+//   feature: string
+//   place: string
+//   img_url: string
+//   created_at: string
+//   category: string
+//   // 返却完了の表示用フラグ（サーバ側に列がある場合はそれを使用）
+//   return_completed?: "はい" | ""
+// }
+
+// export default function Home() {
+//   // 一覧と検索結果
+//   const [products, setProducts] = useState<Product[]>([])
+//   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+
+//   // フィルタ
+//   const [searchQuery, setSearchQuery] = useState("")
+//   const [selectedCategory, setSelectedCategory] = useState("")
+//   const [startDate, setStartDate] = useState("")
+//   const [endDate, setEndDate] = useState("")
+
+//   // 詳細モーダル
+//   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+//   // 状態系
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState<string | null>(null)
+//   const [isMobile, setIsMobile] = useState(false)
+
+//   // 返却処理用の状態
+//   const [showReturnModal, setShowReturnModal] = useState(false)
+//   const [returnStep, setReturnStep] = useState<1 | 2 | 3>(1) // 1:氏名・日付入力, 2:確認(はい/いいえ), 3:署名と完了
+//   const [returnName, setReturnName] = useState("")
+//   const [returnDate, setReturnDate] = useState("")
+//   const [userChoice, setUserChoice] = useState<"" | "はい" | "いいえ">("")
+//   const [isReturnCompleted, setIsReturnCompleted] = useState(false)
+
+//   // 署名パッド
+//   const padRef = useRef<InstanceType<typeof SignatureCanvas> | null>(null)
+//   const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null)
+
+//   // 画面幅によるモバイル判定
+//   useEffect(() => {
+//     const onResize = () => setIsMobile(window.innerWidth < 1024)
+//     onResize()
+//     window.addEventListener("resize", onResize)
+//     return () => window.removeEventListener("resize", onResize)
+//   }, [])
+
+//   // データ取得（最新順で30件までを初期表示）
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         setLoading(true)
+//         setError(null)
+
+//         const response = await fetch("/api/productList", {
+//           method: "GET",
+//           headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
+//         })
+//         if (!response.ok) throw new Error("データの取得に失敗しました")
+
+//         const result = await response.json()
+//         const sorted: Product[] = result.data.sort(
+//           (a: Product, b: Product) =>
+//             new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+//         )
+//         setProducts(sorted)
+//         setFilteredProducts(sorted.slice(0, 30))
+//       } catch (err) {
+//         setError(err instanceof Error ? err.message : "エラーが発生しました")
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+//     fetchData()
+//   }, [])
+
+//   // 検索・フィルタ
+//   useEffect(() => {
+//     let base = [...products].sort(
+//       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+//     )
+
+//     const hasSearch = searchQuery.trim() !== ""
+//     const hasDate = startDate !== "" || endDate !== ""
+
+//     if (hasSearch) {
+//       const q = searchQuery.toLowerCase()
+//       base = base.filter((p) =>
+//         [p.id, p.name, p.brand, p.color, p.feature, p.place, p.category]
+//           .some((v) => String(v).toLowerCase().includes(q)),
+//       )
+//     }
+
+//     if (selectedCategory) {
+//       base = base.filter((p) => p.category === selectedCategory)
+//     }
+
+//     if (startDate || endDate) {
+//       const start = startDate ? new Date(`${startDate}T00:00:00`) : null
+//       const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null
+//       base = base.filter((p) => {
+//         const createdAt = new Date(p.created_at)
+//         return (!start || createdAt >= start) && (!end || createdAt <= end)
+//       })
+//     }
+
+//     if (!hasSearch && !hasDate) base = base.slice(0, 30)
+
+//     setFilteredProducts(base)
+//   }, [searchQuery, selectedCategory, startDate, endDate, products])
+
+//   // Escで各種モーダルを閉じる
+//   useEffect(() => {
+//     const onKey = (e: KeyboardEvent) => {
+//       if (e.key === "Escape") {
+//         setSelectedProduct(null)
+//         setShowReturnModal(false)
+//         setReturnStep(1)
+//         setUserChoice("")
+//       }
+//     }
+//     window.addEventListener("keydown", onKey)
+//     return () => window.removeEventListener("keydown", onKey)
+//   }, [])
+
+//   // 返却処理：ステップ1からステップ2へ
+//   const goReturnStep2 = () => {
+//     if (!returnName.trim() || !returnDate.trim()) {
+//       alert("氏名と日付を入力してください。")
+//       return
+//     }
+//     setReturnStep(2)
+//     setUserChoice("")
+//   }
+
+//   // 確認「はい」
+//   const handleYes = () => setUserChoice("はい")
+
+//   // 確認「いいえ」
+//   const handleNo = () => {
+//     setUserChoice("いいえ")
+//     setShowReturnModal(false)
+//     setReturnStep(1)
+//   }
+
+//   // 署名のクリア
+//   const clearSignature = () => {
+//     padRef.current?.clear()
+//     setSignatureDataURL(null)
+//   }
+
+//   // 署名の保存（必要に応じてAPIを調整）
+//   const saveSignature = async () => {
+//     const dataURL = padRef.current?.toDataURL("image/png")
+//     if (!dataURL) {
+//       alert("署名がありません。")
+//       return
+//     }
+//     setSignatureDataURL(dataURL)
+//     try {
+//       const res = await fetch(`/api/signatureSave`, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ signatureData: dataURL, product_id: selectedProduct?.id }),
+//       })
+//       if (!res.ok) throw new Error("署名保存に失敗しました")
+//       alert("署名を保存しました。")
+//     } catch (err) {
+//       console.error(err)
+//       alert("署名保存中にエラーが発生しました")
+//     }
+//   }
+
+//   // 返却完了処理（必要に応じてAPIを調整）
+//   const completeReturn = async () => {
+//     if (!selectedProduct) return
+//     try {
+//       const res = await fetch("/api/returnRequest", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           product_id: selectedProduct.id,
+//           applicant: returnName,
+//           return_at: returnDate,
+//           signatureDataURL,
+//         }),
+//       })
+//       if (!res.ok) throw new Error("返却処理に失敗しました")
+
+//       // UIを即時更新（他端末はRealtimeやポーリングで追従させる）
+//       setProducts((prev) =>
+//         prev.map((p) =>
+//           p.id === selectedProduct.id ? { ...p, return_completed: "はい" } : p,
+//         ),
+//       )
+//       setFilteredProducts((prev) =>
+//         prev.map((p) =>
+//           p.id === selectedProduct.id ? { ...p, return_completed: "はい" } : p,
+//         ),
+//       )
+//       setIsReturnCompleted(true)
+//       alert("返却処理が完了しました")
+//     } catch (err) {
+//       console.error(err)
+//       alert("エラーが発生しました")
+//     }
+//   }
+
+//   // 返却処理モーダルを閉じる
+//   const closeReturnModal = () => {
+//     setShowReturnModal(false)
+//     setReturnStep(1)
+//     setUserChoice("")
+//     setReturnName("")
+//     setReturnDate("")
+//     clearSignature()
+//     setIsReturnCompleted(false)
+//   }
+
+//   return (
+//     <div className={styles.pageWrapper}>
+//       <div className={styles.container}>
+//         <div className={styles.filterContainer}>
+//           <div className={styles.searchSection}>
+//             <div className={styles.searchBarWrapper}>
+//               <label htmlFor="searchQuery" className={styles.filterLabel}>検索</label>
+//               <input
+//                 id="searchQuery"
+//                 className={styles.searchBar}
+//                 placeholder="商品名やブランドを入力"
+//                 value={searchQuery}
+//                 onChange={(e) => setSearchQuery(e.target.value)}
+//               />
+//             </div>
+
+//             <div className={styles.categoryWrapper}>
+//               <label htmlFor="category" className={styles.filterLabel}>カテゴリー</label>
+//               <select
+//                 id="category"
+//                 className={styles.selectBox}
+//                 value={selectedCategory}
+//                 onChange={(e) => setSelectedCategory(e.target.value)}
+//               >
+//                 <option value="">すべて</option>
+//                 <option value="イヤホン">イヤホン</option>
+//                 <option value="スマートフォン">スマートフォン</option>
+//                 <option value="周辺機器">周辺機器</option>
+//                 <option value="財布">財布</option>
+//                 <option value="時計">時計</option>
+//                 <option value="水筒">水筒</option>
+//                 <option value="文具">文具</option>
+//                 <option value="かばん">かばん</option>
+//                 <option value="衣類">衣類</option>
+//               </select>
+//             </div>
+//           </div>
+
+//           {isMobile ? (
+//             <div className={styles.dateFilter}>
+//               <div className={styles.dateFilterRow}>
+//                 <label htmlFor="startDate">開始日</label>
+//                 <input
+//                   type="date"
+//                   id="startDate"
+//                   className={styles.dateInput}
+//                   value={startDate}
+//                   onChange={(e) => setStartDate(e.target.value)}
+//                 />
+//               </div>
+//               <div className={styles.dateFilterRow}>
+//                 <label htmlFor="endDate">終了日</label>
+//                 <input
+//                   type="date"
+//                   id="endDate"
+//                   className={styles.dateInput}
+//                   value={endDate}
+//                   onChange={(e) => setEndDate(e.target.value)}
+//                 />
+//               </div>
+//             </div>
+//           ) : (
+//             <div className={styles.dateFilter}>
+//               <label htmlFor="startDate">開始日</label>
+//               <input
+//                 type="date"
+//                 id="startDate"
+//                 className={styles.dateInput}
+//                 value={startDate}
+//                 onChange={(e) => setStartDate(e.target.value)}
+//               />
+//               <span className={styles.dateSeparator}>-</span>
+//               <label htmlFor="endDate">終了日</label>
+//               <input
+//                 type="date"
+//                 id="endDate"
+//                 className={styles.dateInput}
+//                 value={endDate}
+//                 onChange={(e) => setEndDate(e.target.value)}
+//               />
+//             </div>
+//           )}
+//         </div>
+
+//         {loading && <p className={styles.loading}>Loading...</p>}
+//         {error && <p className={styles.error}>⚠️ {error}</p>}
+
+//         {!loading && !error && (
+//           <div className={styles.resultsContainer}>
+//             <div className={styles.resultsHeader}>
+//               <h2 className={styles.resultsTitle}>検索結果: {filteredProducts.length}件</h2>
+//             </div>
+//             <ul className={styles.productLists}>
+//               {filteredProducts.map((product) => {
+//                 const returned = product.return_completed === "はい"
+//                 return (
+//                   <li
+//                     key={product.id}
+//                     className={returned ? `${styles.productItem} ${styles.returnedItem}` : styles.productItem}
+//                     onClick={() => setSelectedProduct(product)}
+//                     title={returned ? "返却完了（参照のみ）" : "詳細を表示"}
+//                   >
+//                     <div className={styles.productImageContainer}>
+//                       <Image
+//                         src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${product.img_url}`}
+//                         alt="Product Image"
+//                         width={150}
+//                         height={150}
+//                         className={styles.productImage}
+//                         sizes="(max-width: 767px) 45vw, 150px"
+//                       />
+//                     </div>
+//                     <div className={styles.productDetails}>
+//                       <div className={styles.productId}>ID: {product.id}</div>
+//                       <div className={styles.productName}>{product.name}</div>
+//                       <div className={styles.productInfo}><span className={styles.label}>ブランド:</span> {product.brand}</div>
+//                       <div className={styles.productInfo}><span className={styles.label}>場所:</span> {product.place}</div>
+//                       <div className={styles.productInfo}><span className={styles.label}>カテゴリー:</span> {product.category}</div>
+//                       <div className={styles.productDate}>{new Date(product.created_at).toLocaleDateString()}</div>
+//                       {returned && <div className={styles.returnCompletedLabel}>返却完了</div>}
+//                     </div>
+//                   </li>
+//                 )
+//               })}
+//             </ul>
+//           </div>
+//         )}
+
+//         {selectedProduct && (
+//           <div className={styles.modalOverlay} onClick={() => setSelectedProduct(null)}>
+//             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+//               <button className={styles.closeButton} onClick={() => setSelectedProduct(null)}>×</button>
+
+//               <div className={styles.modalContent}>
+//                 {/* 画像を安全に収めるためのボックス（fill + contain） */}
+//                 <div className={styles.modalImageContainer}>
+//                   <div className={styles.modalImageBox}>
+//                     <Image
+//                       src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
+//                       alt="Product Image"
+//                       fill
+//                       sizes="(max-width: 767px) 90vw, 40vw"
+//                       className={styles.modalImage}
+//                     />
+//                   </div>
+//                 </div>
+
+//                 <div className={styles.modalDetails}>
+//                   <h2 className={styles.modalTitle}>{selectedProduct.name}</h2>
+//                   <div className={styles.modalInfo}>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>商品ID：</span>{selectedProduct.id}</div>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>ブランド：</span>{selectedProduct.brand}</div>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>色：</span>{selectedProduct.color}</div>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>特徴：</span>{selectedProduct.feature}</div>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>場所：</span>{selectedProduct.place}</div>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>カテゴリー：</span>{selectedProduct.category}</div>
+//                     <div className={styles.modalInfoItem}><span className={styles.modalLabel}>登録日：</span>{new Date(selectedProduct.created_at).toLocaleDateString()}</div>
+//                   </div>
+
+//                   {selectedProduct.return_completed === "はい" ? (
+//                     <p className={styles.alreadyReturned}>すでに返却完了されています。</p>
+//                   ) : (
+//                     <div className={styles.modalButtons}>
+//                       <button
+//                         className={styles.modalButton}
+//                         onClick={() => {
+//                           setShowReturnModal(true)
+//                           setReturnStep(1)
+//                           setUserChoice("")
+//                         }}
+//                       >
+//                         返却処理
+//                       </button>
+//                       <button className={styles.modalButton} onClick={() => setSelectedProduct(null)}>閉じる</button>
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       <NavBar />
+
+//       {showReturnModal && selectedProduct && (
+//         <div className={styles.modalOverlay} onClick={closeReturnModal}>
+//           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+//             <button className={styles.closeButton} onClick={closeReturnModal}>×</button>
+
+//             {/* 返却処理モーダル内の画像は固定サイズボックスで表示 */}
+//             <div className={styles.returnModalImageBox}>
+//               <Image
+//                 src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
+//                 alt="Product Image"
+//                 fill
+//                 sizes="200px"
+//                 className={styles.modalImage}
+//               />
+//             </div>
+
+//             <p className={styles.returnModalText}><strong>商品ID:</strong> {selectedProduct.id}</p>
+//             <p className={styles.returnModalText}><strong>名称:</strong> {selectedProduct.name}</p>
+//             <p className={styles.returnModalText}><strong>場所:</strong> {selectedProduct.place}</p>
+//             <p className={styles.returnModalText}><strong>特徴:</strong> {selectedProduct.feature}</p>
+
+//             {returnStep === 1 && (
+//               <>
+//                 <div className={styles.returnModalText}>
+//                   <input
+//                     type="text"
+//                     placeholder="受領者（氏名）"
+//                     value={returnName}
+//                     onChange={(e) => setReturnName(e.target.value)}
+//                   />
+//                   <div style={{ height: 5 }}></div>
+//                   <input
+//                     type="date"
+//                     placeholder="返却日"
+//                     value={returnDate}
+//                     onChange={(e) => setReturnDate(e.target.value)}
+//                   />
+//                 </div>  
+//                 <div className={styles.modalButtons}>
+//                   <button className={styles.modalButton} onClick={goReturnStep2}>次へ</button>
+//                   <button className={styles.modalButton} onClick={closeReturnModal}>戻る</button>
+//                 </div>
+//               </>
+//             )}
+
+//             {returnStep === 2 && (
+//               <>
+//                 <p className={`${styles.confirmMessage} ${styles.returnModalText}`}>
+//                   本当に自分のものと間違いないですか？<br />
+//                   後々に問題が起きた場合、責任を負うことになりますがよろしいですか？
+//                 </p>
+
+//                 {userChoice === "" && (
+//                   <div className={styles.modalButtons}>
+//                     <button className={styles.modalButton} onClick={handleYes}>はい</button>
+//                     <button className={styles.modalButton} onClick={handleNo}>いいえ</button>
+//                   </div>
+//                 )}
+
+//                 {userChoice === "はい" && (
+//                   <div className={styles.modalButtons}>
+//                     <button className={styles.modalButton} onClick={() => setReturnStep(3)}>署名へ</button>
+//                     <button className={styles.modalButton} onClick={closeReturnModal}>戻る</button>
+//                   </div>
+//                 )}
+//               </>
+//             )}
+
+//             {returnStep === 3 && (
+//               <>
+//                 <br/>
+//                 <div className={styles.signatureWrapper}>
+//                   <SignatureCanvas ref={padRef} canvasProps={{ className: styles.signatureCanvas }} />
+//                 </div>
+//                 <div className={styles.modalButtons} style={{ marginTop: 10 }}>
+//                   <button className={styles.modalButton} onClick={clearSignature}>Clear</button>
+//                   <button className={styles.modalButton} onClick={saveSignature}>署名保存</button>
+//                 </div>
+
+//                 {signatureDataURL && (
+//                   <img
+//                     src={signatureDataURL}
+//                     alt="signature preview"
+//                     style={{ marginTop: 10, border: "1px solid #ccc", width: "100%", height: "180px" }}
+//                   />
+//                 )}
+
+//                 <div className={styles.modalButtons} style={{ marginTop: 10 }}>
+//                   <button className={styles.modalButton} onClick={completeReturn}>返却完了</button>
+//                   <button className={styles.modalButton} onClick={closeReturnModal}>閉じる</button>
+//                 </div>
+
+//                 {isReturnCompleted && <p className={styles.returnCompletedLabel}>返却が完了しました。</p>}
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+// "use client"
+// import { useState, useEffect } from "react"
+// import Image from "next/image"
+// import styles from "./index.module.css"
+// import NavBar from "@/components/navBar/navBar"
+
+// export const fetchCache = "force-no-store"
+
+// interface Product {
+//   id: number
+//   name: string
+//   brand: string
+//   color: string
+//   feature: string
+//   place: string
+//   img_url: string
+//   created_at: string
+//   category: string
+// }
+
+// export default function Home() {
+//   const [products, setProducts] = useState<Product[]>([])
+//   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+//   const [searchQuery, setSearchQuery] = useState("") // 検索キーワード
+//   const [selectedCategory, setSelectedCategory] = useState("") // カテゴリーフィルター
+//   const [startDate, setStartDate] = useState("") // 開始日
+//   const [endDate, setEndDate] = useState("") // 終了日
+//   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null) // モーダルに表示する商品
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState<string | null>(null)
+//   const [isMobile, setIsMobile] = useState(false)
+
+//   // Check if device is mobile
+//   useEffect(() => {
+//     const checkScreenSize = () => {
+//       setIsMobile(window.innerWidth < 1024)
+//     }
+
+//     // Initial check
+//     checkScreenSize()
+
+//     // Add event listener for window resize
+//     window.addEventListener("resize", checkScreenSize)
+
+//     // Cleanup
+//     return () => window.removeEventListener("resize", checkScreenSize)
+//   }, [])
+
+//   // 🔹 データ取得（最新登録順にソートし、最大30件表示）
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         setLoading(true)
+//         setError(null)
+
+//         const response = await fetch("/api/productList", {
+//           method: "GET",
+//           headers: {
+//             "Content-Type": "application/json",
+//             "Cache-Control": "no-cache",
+//           },
+//         })
+
+//         if (!response.ok) {
+//           throw new Error("データの取得に失敗しました")
+//         }
+
+//         const result = await response.json()
+
+//         // 🔹 最新登録順にソートし、最大30件を保存
+//         const sortedProducts = result.data.sort(
+//           (a: Product, b: Product) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+//         )
+
+//         setProducts(result.data)
+//         setFilteredProducts(sortedProducts.slice(0, 30))
+//       } catch (error) {
+//         setError(error instanceof Error ? error.message : "エラーが発生しました")
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+
+//     fetchData()
+//   }, [])
+
+//   // 🔹 検索機能
+//   useEffect(() => {
+//     let base = [...products].sort(
+//       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+//     );
+
+//     const hasSearch = searchQuery.trim() !== "";
+//     const hasDate = startDate !== "" || endDate !== "";
+
+//     // 🔹 基本検索
+//     if (hasSearch) {
+//       const q = searchQuery.toLowerCase();
+//       base = base.filter((p) =>
+//         [p.id, p.name, p.brand, p.color, p.feature, p.place, p.category]
+//           .some((v) => String(v).toLowerCase().includes(q))
+//       );
+//     }
+
+//     // 🔹 カテゴリー検索
+//     if (selectedCategory) {
+//       base = base.filter((p) => p.category === selectedCategory);
+//     }
+
+//     // 🔹 日付検索（ローカル日付の1日範囲）
+//     if (startDate || endDate) {
+//       const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
+//       const end   = endDate   ? new Date(`${endDate}T23:59:59.999`) : null;
+//       base = base.filter((p) => {
+//         const createdAt = new Date(p.created_at);
+//         return (!start || createdAt >= start) && (!end || createdAt <= end);
+//       });
+//     }
+
+//     // 🔹 検索/日付がない時は最新順で30件だけ
+//     if (!hasSearch && !hasDate) {
+//       base = base.slice(0, 30);
+//     }
+
+//     setFilteredProducts(base);
+//   }, [searchQuery, selectedCategory, startDate, endDate, products]);
+
+//   // 🔹 ESCキーでモーダルを閉じる機能
+//   useEffect(() => {
+//     const handleKeyDown = (event: KeyboardEvent) => {
+//       if (event.key === "Escape") {
+//         setSelectedProduct(null)
+//       }
+//     }
+
+//     window.addEventListener("keydown", handleKeyDown)
+//     return () => window.removeEventListener("keydown", handleKeyDown)
+//   }, [])
+
+//   return (
+//     <div className={styles.pageWrapper}>
+//       {/* No additional settings icon needed - using the original one */}
+
+//       <div className={styles.container}>
+//         {/* 🔹 検索フィルターUI */}
+//         <div className={styles.filterContainer}>
+//           <div className={styles.searchSection}>
+//             {/* 🔍 検索バー */}
+//             <div className={styles.searchBarWrapper}>
+//               <label htmlFor="searchQuery" className={styles.filterLabel}>
+//                 検索
+//               </label>
+//               <input
+//                 type="text"
+//                 id="searchQuery"
+//                 name="searchQuery"
+//                 placeholder="商品名やブランドを入力"
+//                 title="検索欄に文字を入力してください"
+//                 className={styles.searchBar}
+//                 value={searchQuery}
+//                 onChange={(e) => setSearchQuery(e.target.value)}
+//               />
+//             </div>
+
+//             {/* 🔹 カテゴリー選択 */}
+//             <div className={styles.categoryWrapper}>
+//               <label htmlFor="category" className={styles.filterLabel}>
+//                 カテゴリー
+//               </label>
+//               <select
+//                 id="category"
+//                 name="category"
+//                 className={styles.selectBox}
+//                 value={selectedCategory}
+//                 onChange={(e) => setSelectedCategory(e.target.value)}
+//               >
+//                 <option value="">すべて</option>
+//                 <option value="イヤホン">イヤホン</option>
+//                 <option value="スマートフォン">スマートフォン</option>
+//                 <option value="周辺機器">周辺機器</option>
+//                 <option value="財布">財布</option>
+//                 <option value="時計">時計</option>
+//                 <option value="水筒">水筒</option>
+//                 <option value="文具">文具</option>
+//                 <option value="かばん">かばん</option>
+//                 <option value="衣類">衣類</option>
+//               </select>
+//             </div>
+//           </div>
+
+//           {/* 🔹 日付検索フィールド - モバイルでは2行に分割 */}
+//           {isMobile ? (
+//             <div className={styles.dateFilter}>
+//               <div className={styles.dateFilterRow}>
+//                 <label htmlFor="startDate">開始日</label>
+//                 <input
+//                   type="date"
+//                   id="startDate"
+//                   name="startDate"
+//                   className={styles.dateInput}
+//                   title="開始日を選択してください"
+//                   value={startDate}
+//                   onChange={(e) => setStartDate(e.target.value)}
+//                 />
+//               </div>
+//               <div className={styles.dateFilterRow}>
+//                 <label htmlFor="endDate">終了日</label>
+//                 <input
+//                   type="date"
+//                   id="endDate"
+//                   name="endDate"
+//                   className={styles.dateInput}
+//                   title="終了日を選択してください"
+//                   value={endDate}
+//                   onChange={(e) => setEndDate(e.target.value)}
+//                 />
+//               </div>
+//             </div>
+//           ) : (
+//             <div className={styles.dateFilter}>
+//               <label htmlFor="startDate">開始日</label>
+//               <input
+//                 type="date"
+//                 id="startDate"
+//                 name="startDate"
+//                 className={styles.dateInput}
+//                 title="開始日を選択してください"
+//                 value={startDate}
+//                 onChange={(e) => setStartDate(e.target.value)}
+//               />
+
+//               <span className={styles.dateSeparator}>-</span>
+
+//               <label htmlFor="endDate">終了日</label>
+//               <input
+//                 type="date"
+//                 id="endDate"
+//                 name="endDate"
+//                 className={styles.dateInput}
+//                 title="終了日を選択してください"
+//                 value={endDate}
+//                 onChange={(e) => setEndDate(e.target.value)}
+//               />
+//             </div>
+//           )}
+//         </div>
+
+//         {/* ローディング表示 */}
+//         {loading && <p className={styles.loading}>Loading...</p>}
+
+//         {/* エラーメッセージ表示 */}
+//         {error && <p className={styles.error}>⚠️ {error}</p>}
+
+//         {/* 🔹 商品リスト */}
+//         {!loading && !error && (
+//           <div className={styles.resultsContainer}>
+//             <div className={styles.resultsHeader}>
+//               <h2 className={styles.resultsTitle}>検索結果: {filteredProducts.length}件</h2>
+//             </div>
+//             <ul className={styles.productLists}>
+//               {filteredProducts.map((product) => (
+//                 <li key={product.id} className={styles.productItem} onClick={() => setSelectedProduct(product)}>
+//                   <div className={styles.productImageContainer}>
+//                     <Image
+//                       src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${product.img_url}`}
+//                       alt="Product Image"
+//                       width={150}
+//                       height={150}
+//                       className={styles.productImage}
+//                     />
+//                   </div>
+//                   <div className={styles.productDetails}>
+//                     <div className={styles.productId}>ID: {product.id}</div>
+//                     <div className={styles.productName}>{product.name}</div>
+//                     <div className={styles.productInfo}>
+//                       <span className={styles.label}>ブランド:</span> {product.brand}
+//                     </div>
+//                     <div className={styles.productInfo}>
+//                       <span className={styles.label}>場所:</span> {product.place}
+//                     </div>
+//                     <div className={styles.productInfo}>
+//                       <span className={styles.label}>カテゴリー:</span> {product.category}
+//                     </div>
+//                     <div className={styles.productDate}>{new Date(product.created_at).toLocaleDateString()}</div>
+//                   </div>
+//                 </li>
+//               ))}
+//             </ul>
+//           </div>
+//         )}
+
+//         {/* 🔹 モーダル（選択された商品の詳細を表示） */}
+//         {selectedProduct && (
+//           <div className={styles.modalOverlay} onClick={() => setSelectedProduct(null)}>
+//             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+//               <button className={styles.closeButton} onClick={() => setSelectedProduct(null)}>
+//                 ×
+//               </button>
+//               <div className={styles.modalContent}>
+//                 <div className={styles.modalImageContainer}>
+//                   <Image
+//                     src={`https://kezjxnkrmtahxlvafcuh.supabase.co/storage/v1/object/public/lost-item-pics/${selectedProduct.img_url}`}
+//                     alt="Product Image"
+//                     width={300}
+//                     height={300}
+//                     className={styles.modalImage}
+//                   />
+//                 </div>
+//                 <div className={styles.modalDetails}>
+//                   <h2 className={styles.modalTitle}>{selectedProduct.name}</h2>
+//                   <div className={styles.modalInfo}>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>商品ID：</span>
+//                       {selectedProduct.id}
+//                     </div>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>ブランド：</span>
+//                       {selectedProduct.brand}
+//                     </div>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>色：</span>
+//                       {selectedProduct.color}
+//                     </div>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>特徴：</span>
+//                       {selectedProduct.feature}
+//                     </div>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>場所：</span>
+//                       {selectedProduct.place}
+//                     </div>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>カテゴリー：</span>
+//                       {selectedProduct.category}
+//                     </div>
+//                     <div className={styles.modalInfoItem}>
+//                       <span className={styles.modalLabel}>登録日：</span>
+//                       {new Date(selectedProduct.created_at).toLocaleDateString()}
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//       <NavBar />
+//     </div>
+//   )
+// }
 
 
 

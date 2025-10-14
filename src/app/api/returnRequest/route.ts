@@ -5,11 +5,11 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { id, return_completed } = body;
+  const { product_id, applicant, return_at} = body;
   const { error } = await supabase
-    .from("request")
-    .update({ return_completed })
-    .eq("id", id);
+    .from("lost_items")
+    .update({ return_at, applicant})
+    .eq("id", product_id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
