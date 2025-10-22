@@ -93,6 +93,18 @@ function ok(req: NextRequest) {
   return withSecurityHeaders(NextResponse.next(), req);
 }
 
+// アプリ内ログイン必須判定（/login 自体は除外）
+function isLoginFreePath(p: string) {
+  return p === "/login";
+}
+
+function redirectToLogin(req: NextRequest) {
+  const url = req.nextUrl.clone();
+  url.pathname = "/login";
+  const res = NextResponse.redirect(url);
+  return withSecurityHeaders(res, req);
+}
+
 // 공개/정적/필수 경로 우회 (정적, API, 인증 콜백 등)
 function isPublicPath(p: string) {
   return (
@@ -201,6 +213,12 @@ export function middleware(req: NextRequest) {
   const passOk = timingSafeEqual(givenPass, PASS);
 
   if (userOk && passOk) {
+    // Basic 認証通過後、アプリのログイン（Supabaseセッション）チェック
+    const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
+    if (!hasSbSession && !isLoginFreePath(pathname)) {
+      return redirectToLogin(req);
+    }
+
     const res = ok(req);
     clearFailCookies(res);
     return res;

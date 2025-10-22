@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase";
+import { createServerSupabaseClient } from "@/utils/supabaseServer";
 import axios from "axios";
 
 interface Params {
@@ -11,6 +11,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
     const { name, brand, color, feature, place, category } = await req.json();
     const fileName = `${id}.jpg`;
     console.log({ id, name, brand, color, feature, place, category });
+  const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase.from("lost_items").insert({ name: name, brand: brand, color: color, feature: feature, place: place, img_url: fileName, category: category})  
     

@@ -1,6 +1,6 @@
 // app/api/productList/route.ts
 import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase";
+import { createServerSupabaseClient } from "@/utils/supabaseServer";
 
 /**
  * 🚫 サーバールートでは `fetchCache` は効かないため、
@@ -28,6 +28,8 @@ export async function GET(req: Request) {
     const offset = Math.max(Number(searchParams.get("offset") ?? "0"), 0);
 
     // ↪ 常に最新順に並べ替えて取得（挿入されたばかりの行を先頭に）
+    const supabase = await createServerSupabaseClient();
+
     const { data, error } = await supabase
       .from("lost_items")
       .select("*")

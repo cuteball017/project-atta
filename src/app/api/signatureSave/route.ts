@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase";
+import { createServerSupabaseClient } from "@/utils/supabaseServer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "署名データが存在しません" }, { status: 400 });
     }
 
+    const supabase = await createServerSupabaseClient();
+
     // 1) Base64 → Buffer に変換
     const base64Data = signatureData.split(",")[1];
     const buffer = Buffer.from(base64Data, "base64");
@@ -17,7 +19,7 @@ export async function POST(req: NextRequest) {
     // 2) Supabase Storage にアップロード
     const fileName = `signature_${Date.now()}.png`;
 
-    const { data, error } = await supabase.storage
+  const { data, error } = await supabase.storage
       .from("signatures")  // "signatures" ストレージバケット
       .upload(fileName, buffer, {
         contentType: "image/png",
