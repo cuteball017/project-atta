@@ -1,0 +1,217 @@
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loginHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: #F85F73;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(248, 95, 115, 0.3);
+}
+
+.iconWrapper svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.loginTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.loginSubtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #999;
+  pointer-events: none;
+}
+
+.formInput {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  color: #333;
+}
+
+.formInput::placeholder {
+  color: #aaa;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #e95c66;
+  box-shadow: 0 0 5px rgba(233, 92, 102, 0.3);
+}
+
+.formInput:disabled {
+  background-color: #f7fafc;
+  cursor: not-allowed;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  background: #e95c66;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #d94c58;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.messageBox {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.messageBox.error {
+  background-color: #fff5f5;
+  border: 1px solid #fc8181;
+  color: #c53030;
+}
+
+.messageBox.success {
+  background-color: #f0fff4;
+  border: 1px solid #68d391;
+  color: #2f855a;
+}
+
+.messageIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.messageText {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}

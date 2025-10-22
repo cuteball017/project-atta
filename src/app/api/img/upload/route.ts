@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { supabase } from "@/utils/supabase";
+import { createServerSupabaseClient } from "@/utils/supabaseServer";
 
 export async function POST(req: Request, res: NextResponse) {
   const formData = await req.formData();
@@ -14,6 +14,7 @@ export async function POST(req: Request, res: NextResponse) {
   }
 
   const fileName = `${uuidv4()}.jpg`;
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase.storage
     .from("lost-item-pics")

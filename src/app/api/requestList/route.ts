@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase";
+import { createServerSupabaseClient } from "@/utils/supabaseServer";
 
 export const fetchCache = 'force-no-store'
 
 export async function GET(req: Request) {
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase.from("request").select();
 
     return NextResponse.json({ data });
@@ -13,6 +14,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json();
   const { id, return_completed } = body;
+  const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("request")
     .update({ return_completed })
