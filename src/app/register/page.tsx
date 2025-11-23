@@ -9,7 +9,7 @@ import styles from "./index.module.css";
  * - 기존 디자인 클래스(index.module.css)를 그대로 사용
  * - 이미지 ID 없이 직접 등록하는 POST를 시도
  */
-function ManualRegisterForm() {
+function ManualRegisterForm({ onBack }: { onBack: () => void }) {
   const router = useRouter();
 
   const nameRef = useRef<HTMLInputElement>(null);
@@ -84,24 +84,47 @@ function ManualRegisterForm() {
         </div>
       </div>
 
-      <button className={styles.button} type="submit">
-        Register
-      </button>
+      <div className={styles.actionsRow}>
+        <button className={styles.button} type="submit">
+          Register
+        </button>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={() => onBack()}
+        >
+          戻る
+        </button>
+      </div>
     </form>
   );
 }
 
 function Page() {
   const [mode, setMode] = useState<"choice" | "camera" | "manual">("choice");
+  const router = useRouter();
 
   if (mode === "camera") {
     // 사진으로부터 등록: 기존 흐름(WebcamCapture) 유지
-    return <WebcamCapture />;
+    return (
+      <div>
+        <WebcamCapture />
+        <div className={styles.centeredSmall}>
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={() => setMode('choice')}
+          >
+            戻る
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (mode === "manual") {
     // 텍스트 입력: 수기 폼 즉시 표시
-    return <ManualRegisterForm />;
+    return <ManualRegisterForm onBack={() => setMode("choice")} />;
   }
 
   // 최초 진입: 두 가지 선택 버튼 표시
@@ -123,6 +146,15 @@ function Page() {
             type="button"
           >
             テキスト入力
+          </button>
+        </div>
+        <div className={styles.centeredSmall}>
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={() => router.push('/')}
+          >
+            ホームへ戻る
           </button>
         </div>
       </div>

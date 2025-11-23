@@ -105,6 +105,14 @@
 }
 .modalButton:hover{background:#d94c58;}
 
+/* Edit modal form styles */
+.editForm{width:100%;max-width:740px;padding:8px 4px;display:flex;flex-direction:column;gap:12px;}
+.editField{display:flex;flex-direction:column;gap:6px;width:100%;}
+.editField label{font-size:13px;color:#444;font-weight:600;margin-left:4px}
+.editInput{padding:12px 14px;font-size:15px;border:1px solid #ddd;border-radius:8px;width:100%;box-sizing:border-box}
+.editRow{display:flex;gap:12px}
+.editRow .editField{flex:1}
+
 .returnModalImageBox{
   position:relative;width:220px;height:220px;margin:10px auto 16px;border-radius:12px;overflow:hidden;background:#f7f7f7;
 }
@@ -173,6 +181,8 @@
   .modalDetails{padding:20px;}
   .modalTitle{font-size:22px;}
   .modalInfo{grid-template-columns:repeat(2,minmax(0,1fr));}
+
+  .hideCompletedButton{font-size: 12px;min-width: 140px;}
 }
 
 /* ========== Large Tablet / iPad Pro (1024–1365px) ========== */

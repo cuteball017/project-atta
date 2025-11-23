@@ -3,16 +3,26 @@ import { createServerSupabaseClient } from "@/utils/supabaseServer";
 
 // Requestオブジェクトを拡張してあるNextRequestオブジェクトとして受け取るとパース機能がついてくる
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const imgId = searchParams.get("id"); // => "hello"
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const imgId = searchParams.get("id"); // => "hello"
 
-  const supabase = await createServerSupabaseClient();
+    if (!imgId) {
+      return NextResponse.json({ error: "missing id" }, { status: 400 });
+    }
 
-  const { data } = supabase.storage
-    .from("lost-item-pics")
-    .getPublicUrl(imgId + ".jpg");
+    const supabase = await createServerSupabaseClient();
 
-  console.log(data);
+    const { data } = supabase.storage
+      .from("lost-item-pics")
+      .getPublicUrl(imgId + ".jpg");
 
-  return NextResponse.json({ data });
+    console.log("getPublicUrl result:", data);
+
+    return NextResponse.json({ data });
+  } catch (err) {
+    console.error("/api/img GET error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
