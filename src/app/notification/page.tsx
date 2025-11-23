@@ -154,7 +154,7 @@ export default function NotificationPage() {
 
       if (found) {
         // 이미 해당 상품에 대해 등록된(반환되지 않은) 신청이 있는지 확인
-        const existing = requests.find((r) => Number(r.product_id) === id && r.return_completed !== "はい")
+        const existing = requests.find((r) => Number(r.product_id) === id)
         if (existing) {
           // 한국어로 경고 메시지 표시 — 다시 입력하도록 유도
           alert("既にその商品に対して返却の申請があります")
