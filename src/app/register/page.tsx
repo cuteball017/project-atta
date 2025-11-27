@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import WebcamCapture from "@/components/webCam/webCam";
 import styles from "./index.module.css";
 
@@ -9,8 +9,7 @@ import styles from "./index.module.css";
  * - 기존 디자인 클래스(index.module.css)를 그대로 사용
  * - 이미지 ID 없이 직접 등록하는 POST를 시도
  */
-function ManualRegisterForm({ onBack }: { onBack: () => void }) {
-  const router = useRouter();
+function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSuccess?: () => void }) {
 
   const nameRef = useRef<HTMLInputElement>(null);
   const brandRef = useRef<HTMLInputElement>(null);
@@ -38,10 +37,18 @@ function ManualRegisterForm({ onBack }: { onBack: () => void }) {
 
     if (res.ok) {
       alert("登録しました");
-      router.push("/");
+      // 클라이언트에서 즉시 다시 등록할 수 있도록 입력값을 초기화하고
+      // 부모에게 성공 콜백을 호출해 UI를 유지하도록 한다
+      if (nameRef.current) nameRef.current.value = "";
+      if (brandRef.current) brandRef.current.value = "";
+      if (colorRef.current) colorRef.current.value = "";
+      if (featureRef.current) featureRef.current.value = "";
+      if (placeRef.current) placeRef.current.value = "";
+      if (categoryRef.current) categoryRef.current.value = "";
+      if (onSuccess) onSuccess();
     } else {
       alert("登録に失敗しました");
-      router.push("/");
+      // 失敗時はフォームのままにして再試行可能にする
     }
   };
 
@@ -101,7 +108,9 @@ function ManualRegisterForm({ onBack }: { onBack: () => void }) {
 }
 
 function Page() {
-  const [mode, setMode] = useState<"choice" | "camera" | "manual">("choice");
+  const searchParams = useSearchParams();
+  const initialMode = (searchParams?.get("mode") as "choice" | "camera" | "manual") ?? "choice";
+  const [mode, setMode] = useState<"choice" | "camera" | "manual">(initialMode);
   const router = useRouter();
 
   if (mode === "camera") {
@@ -124,7 +133,15 @@ function Page() {
 
   if (mode === "manual") {
     // 텍스트 입력: 수기 폼 즉시 표시
-    return <ManualRegisterForm onBack={() => setMode("choice")} />;
+    return (
+      <ManualRegisterForm
+        onBack={() => setMode("choice")}
+        onSuccess={() => {
+          // 성공 후에도 계속 텍スト登録できるよう、여기서는 mode를 유지するだけ
+          setMode("manual");
+        }}
+      />
+    );
   }
 
   // 최초 진입: 두 가지 선택 버튼 표시

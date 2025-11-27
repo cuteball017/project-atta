@@ -129,10 +129,11 @@ function Page({ params }: { params: Params }) {
 
     if (response.ok) {
       alert("登録しました。");
-      router.push("/");
+      // 登録完了後はカメラモードで即再登録できるよう戻す
+      router.push(`/register?mode=camera`);
     } else {
       alert("登録に失敗しました。");
-      router.push("/");
+      // エラー時は画面に留まり再試行・編集できるようする
     }
   };
 

@@ -7,10 +7,12 @@ interface Params {
 
 export async function POST(req: Request, { params }: { params: Params }) {
     const { id } = params;
-    const { product_id, applicant, name, feature, place, lost_day, img_url, return_completed } = await req.json();
+    const { product_id, img_url, application_date, remarks, applicant } = await req.json();
   const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.from("request").insert({ product_id: product_id, applicant: applicant, name: name, feature: feature, place: place, img_url: img_url, lost_day: lost_day, return_completed: return_completed });
+    const { error } = await supabase
+      .from("request")
+      .insert({ product_id: product_id, img_url: img_url, application_date: application_date, remarks: remarks, applicant: applicant });
 
     if (error) {
         console.error("Supabase insert error:", error);

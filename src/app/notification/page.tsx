@@ -13,7 +13,11 @@ interface RequestData {
   color: string
   place: string
   feature: string
+  // legacy fields (may be replaced by application_date)
   lost_day: string
+  // new fields for the updated request model
+  application_date?: string
+  remarks?: string
   created_at: string
   img_url: string
   product_id: string
@@ -47,8 +51,8 @@ export default function NotificationPage() {
   const [productId, setProductId] = useState("")
   const [newRequest, setNewRequest] = useState({
     applicant: "",
-    lost_day: "",
-    return_completed: "",
+    application_date: "",
+    remarks: "",
   })
 
   const [selectedRequest, setSelectedRequest] = useState<RequestData | null>(null)
@@ -75,9 +79,9 @@ export default function NotificationPage() {
       if (!response.ok) throw new Error("データ取得失敗")
       const data = await response.json()
 
-      const sortedData = data.data.sort(
-        (a: RequestData, b: RequestData) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      // Sort by application_date (descending). Items without application_date will go last.
+      const sortedData = data.data.sort((a: RequestData, b: RequestData) =>
+        (new Date(b.application_date ?? 0).getTime() - new Date(a.application_date ?? 0).getTime())
       )
 
       setRequests(sortedData)
@@ -98,8 +102,8 @@ export default function NotificationPage() {
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
       filtered = filtered.filter((request) =>
-        [request.id, request.product_id, request.applicant, request.name, request.feature, request.place].some(
-          (value) => String(value).toLowerCase().includes(q),
+        [request.id, request.product_id, request.applicant, request.application_date, request.remarks].some(
+          (value) => String(value ?? "").toLowerCase().includes(q),
         ),
       )
     }
@@ -108,9 +112,12 @@ export default function NotificationPage() {
       const start = startDate ? new Date(`${startDate}T00:00:00`) : null
       const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null
 
+      // Only use application_date for date-range filtering.
+      // If a request has no application_date, it will not match the date-range.
       filtered = filtered.filter((req) => {
-        const createdAt = new Date(req.created_at)
-        return (!start || createdAt >= start) && (!end || createdAt <= end)
+        if (!req.application_date) return false
+        const checkDate = new Date(req.application_date)
+        return (!start || checkDate >= start) && (!end || checkDate <= end)
       })
     }
 
@@ -177,16 +184,13 @@ export default function NotificationPage() {
   const handleRegisterRequest = async () => {
     if (!selectedProduct) return
     try {
-      const requestData = {
-        product_id: selectedProduct.id,
-        name: selectedProduct.name,
-        place: selectedProduct.place,
-        feature: selectedProduct.feature,
-        img_url: selectedProduct.img_url,
-        applicant: newRequest.applicant,
-        lost_day: newRequest.lost_day,
-        return_completed: newRequest.return_completed,
-      }
+        const requestData = {
+          product_id: selectedProduct.id,
+          img_url: selectedProduct.img_url,
+          applicant: newRequest.applicant,
+          application_date: newRequest.application_date,
+          remarks: newRequest.remarks,
+        }
 
       const res = await fetch("/api/register2/POST", {
         method: "POST",
@@ -207,8 +211,8 @@ export default function NotificationPage() {
     setSelectedRequest(null)
     setNewRequest({
       applicant: "",
-      lost_day: "",
-      return_completed: "",
+      application_date: "",
+      remarks: "",
     })
     setSelectedRequest(null)
   }
@@ -294,11 +298,9 @@ export default function NotificationPage() {
                 <p><strong>申請ID:</strong> {req.id}</p>
                 <p><strong>商品ID:</strong> {req.product_id}</p>
                 <p><strong>申請者:</strong> {req.applicant}</p>
-                <p><strong>名称:</strong> {req.name}</p>
-                <p><strong>場所:</strong> {req.place}</p>
-                <p><strong>特徴:</strong> {req.feature}</p>
-                <p><strong>紛失日:</strong> {req.lost_day}</p>
-                <p><strong>申請日:</strong> {new Date(req.created_at).toLocaleDateString()}</p>
+                  {/* New display: photo, 申請ID, 商品ID, 申請日, 備考（remarks） */}
+                  <p><strong>申請日:</strong> {req.application_date ? new Date(req.application_date).toLocaleDateString() : "未設定"}</p>
+                  {req.remarks && <p><strong>備考:</strong> {req.remarks}</p>}
                 {isReturned && <p className={styles.returnCompletedLabel}>返却完了済み</p>}
               </div>
             )
@@ -325,11 +327,8 @@ export default function NotificationPage() {
             <p><strong>申請ID:</strong> {selectedRequest.id}</p>
             <p><strong>商品ID:</strong> {selectedRequest.product_id}</p>
             <p><strong>申請者:</strong> {selectedRequest.applicant}</p>
-            <p><strong>名称:</strong> {selectedRequest.name}</p>
-            <p><strong>場所:</strong> {selectedRequest.place}</p>
-            <p><strong>特徴:</strong> {selectedRequest.feature}</p>
-            <p><strong>紛失日:</strong> {selectedRequest.lost_day}</p>
-            <p><strong>申請日:</strong> {new Date(selectedRequest.created_at).toLocaleDateString()}</p>
+            <p><strong>申請日:</strong> {selectedRequest.application_date ? new Date(selectedRequest.application_date).toLocaleDateString() : "未設定"}</p>
+            {selectedRequest.remarks && <p><strong>備考:</strong> {selectedRequest.remarks}</p>}
 
             {selectedRequest.return_completed === "はい" ? (
               <p className={styles.returnCompletedLabel}>
@@ -404,21 +403,29 @@ export default function NotificationPage() {
               className={styles.productImage}
             />
             <p><strong>商品ID:</strong> {selectedProduct.id}</p>
-            <p><strong>名称:</strong> {selectedProduct.name}</p>
-            <p><strong>場所:</strong> {selectedProduct.place}</p>
-            <p><strong>特徴:</strong> {selectedProduct.feature}</p>
-
+            {/* Applicant, application date and remarks per new spec */}
+            <label htmlFor="applicant">申請者</label>
             <input
+              id="applicant"
               type="text"
-              placeholder="申請者"
+              placeholder="申請者を入力"
               value={newRequest.applicant}
               onChange={(e) => setNewRequest({ ...newRequest, applicant: e.target.value })}
             />
+            <label htmlFor="applicationDate">申請日</label>
             <input
-              type="text"
-              placeholder="紛失日"
-              value={newRequest.lost_day}
-              onChange={(e) => setNewRequest({ ...newRequest, lost_day: e.target.value })}
+              id="applicationDate"
+              type="date"
+              value={newRequest.application_date}
+              onChange={(e) => setNewRequest({ ...newRequest, application_date: e.target.value })}
+            />
+
+            <label htmlFor="remarks">備考</label>
+            <input
+              id="remarks"
+              placeholder="備考を入力"
+              value={newRequest.remarks}
+              onChange={(e) => setNewRequest({ ...newRequest, remarks: e.target.value })}
             />
 
             <div className={styles.modalButtons}>
@@ -729,7 +736,7 @@ export default function NotificationPage() {
 //         img_url: selectedProduct.img_url,
 //         applicant: newRequest.applicant,
 //         lost_day: newRequest.lost_day,
-//         return_completed: newRequest.return_completed,
+//         // return_completed is handled by DB trigger — removed from client payload
 //       }
 //       const res = await fetch("/api/register2/POST", {
 //         method: "POST",
@@ -1348,7 +1355,7 @@ export default function NotificationPage() {
 //         img_url: selectedProduct.img_url,
 //         applicant: newRequest.applicant,
 //         lost_day: newRequest.lost_day,
-//         return_completed: newRequest.return_completed,
+//         // return_completed is handled by DB trigger — removed from client payload
 //       };
 //       const res = await fetch("/api/register2/POST", {
 //         method: "POST",
@@ -1962,7 +1969,7 @@ export default function NotificationPage() {
 //         img_url: selectedProduct.img_url,
 //         applicant: newRequest.applicant,
 //         lost_day: newRequest.lost_day,
-//         return_completed: newRequest.return_completed,
+//         // return_completed is handled by DB trigger — removed from client payload
 //       };
 //       const res = await fetch("/api/register2/POST", {
 //         method: "POST",
@@ -2506,7 +2513,7 @@ export default function NotificationPage() {
 //         img_url: selectedProduct.img_url,
 //         applicant: newRequest.applicant,
 //         lost_day: newRequest.lost_day,
-//         return_completed: newRequest.return_completed,
+//         // return_completed is handled by DB trigger and removed from client payload
 //       };
 //       const res = await fetch("/api/register2/POST", {
 //         method: "POST",
@@ -2979,7 +2986,7 @@ export default function NotificationPage() {
 //         img_url: selectedProduct.img_url,
 //         applicant: newRequest.applicant,
 //         lost_day: newRequest.lost_day,
-//         return_completed: newRequest.return_completed
+//         // return_completed is handled by DB trigger — removed from client payload
 //       };
 //       const response = await fetch(`/api/register2/POST`, {
 //         method: "POST",
