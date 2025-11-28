@@ -40,24 +40,8 @@ export default function LoginPage() {
       setStatus("idle");
       setMessage("ログインしました。");
 
-      // after server returns success and sets HttpOnly cookies, verify session
-      // by calling the server-side session endpoint. If it returns 200, navigate
-      // with the Next.js router (router.replace + router.refresh) so server
-      // components and layout re-fetch with the new session, avoiding full reload.
-      try {
-        const s = await fetch("/api/auth/session", { method: "GET", credentials: "same-origin" });
-        if (s.ok) {
-          // use Next.js router for client-side navigation + server component refresh
-          router.replace("/");
-          router.refresh();
-          return;
-        }
-      } catch (e) {
-        console.warn("session check failed", e);
-      }
-
-      // If session verification failed (rare edge case), fallback to router-based
-      // navigation with refresh. Only resort to window.location if router fails.
+      // Login API has set HttpOnly cookies and returned session confirmation.
+      // Navigate immediately - no additional verification call needed.
       try {
         router.replace("/");
         router.refresh();

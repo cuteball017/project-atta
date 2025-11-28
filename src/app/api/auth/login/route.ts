@@ -36,7 +36,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = NextResponse.json({ user: data.user });
+    // Include session data in response so client doesn't need additional verification call
+    const response = NextResponse.json({ 
+      user: data.user,
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token
+      }
+    });
     const maxAge = Number.isFinite(Number(SUPABASE_JWT_MAX_AGE))
       ? Number(SUPABASE_JWT_MAX_AGE)
       : 60 * 60 * 24 * 7;
