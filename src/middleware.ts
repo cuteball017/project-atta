@@ -212,19 +212,20 @@ export function middleware(req: NextRequest) {
   const userOk = timingSafeEqual(givenUser, USER);
   const passOk = timingSafeEqual(givenPass, PASS);
 
-  if (userOk && passOk) {
-    // Basic 認証通過後、アプリのログイン（Supabaseセッション）チェック
-    const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
-    if (!hasSbSession && !isLoginFreePath(pathname)) {
-      return redirectToLogin(req);
-    }
+    if (userOk && passOk) {
+      // Basic 認証通過後、アプリのログイン（Supabaseセッション）チェック
+      // If sb-login-flag is set (fresh login), skip session validation for this request
+      const isJustLoggedIn = Boolean(req.cookies.get("sb-login-flag")?.value);
+      const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
+      
+      if (!isJustLoggedIn && !hasSbSession && !isLoginFreePath(pathname)) {
+        return redirectToLogin(req);
+      }
 
-    const res = ok(req);
-    clearFailCookies(res);
-    return res;
-  }
-
-  return bumpFailAndMaybeLock(req);
+      const res = ok(req);
+      clearFailCookies(res);
+      return res;
+    }  return bumpFailAndMaybeLock(req);
 }
 
 /** ====== 매처 ====== */

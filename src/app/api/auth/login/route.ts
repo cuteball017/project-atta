@@ -58,6 +58,16 @@ export async function POST(request: Request) {
     response.cookies.set("sb-access-token", data.session.access_token, cookieOptions);
     response.cookies.set("sb-refresh-token", data.session.refresh_token, cookieOptions);
 
+    // Set a temporary flag to indicate fresh login. Middleware will skip session validation
+    // on the next request. This flag expires after 10 seconds.
+    response.cookies.set("sb-login-flag", "true", {
+      httpOnly: false,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 10,
+    });
+
     return response;
   } catch (error) {
     console.error("Login route error", error);

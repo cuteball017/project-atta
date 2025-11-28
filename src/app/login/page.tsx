@@ -40,15 +40,9 @@ export default function LoginPage() {
       setStatus("idle");
       setMessage("ログインしました。");
 
-      // Login API has set HttpOnly cookies and returned session confirmation.
-      // Navigate immediately - no additional verification call needed.
-      try {
-        router.replace("/");
-        router.refresh();
-      } catch (e) {
-        console.error("router navigation failed, using window.location as last resort", e);
-        window.location.assign("/");
-      }
+      // Login API has set both session cookies and login flag.
+      // Use Next.js router for SPA-like navigation (no full page reload).
+      router.replace("/");
     } catch (error) {
       console.error("Login error", error);
       setStatus("error");
