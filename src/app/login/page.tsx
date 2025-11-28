@@ -40,9 +40,11 @@ export default function LoginPage() {
       setStatus("idle");
       setMessage("ログインしました。");
 
-      // Login API has set both session cookies and login flag.
-      // Use Next.js router for SPA-like navigation (no full page reload).
-      router.replace("/");
+      // Use full page reload. This ensures:
+      // 1. Server receives request with new session cookies
+      // 2. Layout re-runs and gets new initialAccessToken from createServerSupabaseClient
+      // 3. NotificationProvider receives updated token and doesn't redirect
+      window.location.href = "/";
     } catch (error) {
       console.error("Login error", error);
       setStatus("error");

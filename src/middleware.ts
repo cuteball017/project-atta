@@ -214,11 +214,8 @@ export function middleware(req: NextRequest) {
 
     if (userOk && passOk) {
       // Basic 認証通過後、アプリのログイン（Supabaseセッション）チェック
-      // If sb-login-flag is set (fresh login), skip session validation for this request
-      const isJustLoggedIn = Boolean(req.cookies.get("sb-login-flag")?.value);
       const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
-      
-      if (!isJustLoggedIn && !hasSbSession && !isLoginFreePath(pathname)) {
+      if (!hasSbSession && !isLoginFreePath(pathname)) {
         return redirectToLogin(req);
       }
 
