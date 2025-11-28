@@ -26,6 +26,8 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        // ensure cookies set by server are accepted by the browser
+        credentials: "same-origin",
         body: JSON.stringify(body),
       });
 
@@ -37,8 +39,32 @@ export default function LoginPage() {
 
       setStatus("idle");
       setMessage("ログインしました。");
-      router.push("/");
-      router.refresh();
+
+      // after server returns success and sets HttpOnly cookies, verify session
+      // by calling the server-side session endpoint. If it returns 200, navigate
+      // with the Next.js router (router.replace + router.refresh) so server
+      // components and layout re-fetch with the new session, avoiding full reload.
+      try {
+        const s = await fetch("/api/auth/session", { method: "GET", credentials: "same-origin" });
+        if (s.ok) {
+          // use Next.js router for client-side navigation + server component refresh
+          router.replace("/");
+          router.refresh();
+          return;
+        }
+      } catch (e) {
+        console.warn("session check failed", e);
+      }
+
+      // If session verification failed (rare edge case), fallback to router-based
+      // navigation with refresh. Only resort to window.location if router fails.
+      try {
+        router.replace("/");
+        router.refresh();
+      } catch (e) {
+        console.error("router navigation failed, using window.location as last resort", e);
+        window.location.assign("/");
+      }
     } catch (error) {
       console.error("Login error", error);
       setStatus("error");

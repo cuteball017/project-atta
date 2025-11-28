@@ -8,6 +8,7 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -49,6 +50,8 @@ function reducer(state: Notification[], action: Action): Notification[] {
 export function NotificationProvider({ children, initialAccessToken, initialRefreshToken }: { children: ReactNode; initialAccessToken?: string | null; initialRefreshToken?: string | null }) {
   const [state, dispatch] = useReducer(reducer, []);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   // 채널 구독을 함수로 분리
   const subscribeRealtime = async () => {
@@ -126,14 +129,45 @@ export function NotificationProvider({ children, initialAccessToken, initialRefr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // If server didn't provide tokens (no session), redirect to login page once
+  useEffect(() => {
+    // run only on the client
+    if (typeof window === "undefined") return;
+
+    // If there is no initialAccessToken and we're not already on /login
+    // send the user to the login page. The middleware will still protect
+    // server-side routes — this is a client-side helper to avoid leaving
+    // users on protected pages when the session is gone.
+    if (!initialAccessToken && !pathname?.startsWith("/login") && !pathname?.startsWith("/api")) {
+      try {
+        router.replace("/login");
+      } catch (e) {
+        // fallback to full navigation if router fails
+        window.location.assign("/login");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAccessToken, pathname]);
+
   // 2) 로그인/로그아웃(세션 변경) 시 재구독
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.access_token) {
         await supabase.realtime.setAuth(session.access_token);
         console.log("[Realtime auth updated -> resubscribe]");
       } else {
         console.log("[Logged out -> resubscribe]");
+      }
+      // If session becomes null / signed out, redirect to /login (client-side)
+      if (!session?.access_token) {
+        // avoid redirect loop if already on login page
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          try {
+            router.replace("/login");
+          } catch (e) {
+            window.location.assign("/login");
+          }
+        }
       }
       // ✅ 여기서 재구독
       subscribeRealtime();
