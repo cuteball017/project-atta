@@ -70,6 +70,17 @@ export default function NotificationPage() {
     handleSearch()
   }, [searchQuery, startDate, endDate, hideCompleted, requests])
 
+  useEffect(() => {
+    if (selectedProduct !== null || selectedRequest !== null || showProductModal || showRequestModal || showDeleteConfirm) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [selectedProduct, selectedRequest, showProductModal, showRequestModal, showDeleteConfirm])
+
   const fetchRequests = async () => {
     try {
       setLoading(true)

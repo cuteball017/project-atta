@@ -9,13 +9,13 @@ interface Params {
 export async function POST(req: Request, { params }: { params: Params }) {
   try {
     const { id } = params;
-    const { name, brand, color, feature, place, category } = await req.json();
+    const { name, brand, color, feature, place, category, remarks } = await req.json();
     const fileName = `${id}.jpg`;
-    console.log({ id, name, brand, color, feature, place, category });
+    console.log({ id, name, brand, color, feature, place, category, remarks });
 
     const supabase = await createServerSupabaseClient();
 
-    const { data, error } = await supabase.from("lost_items").insert({ name: name, brand: brand, color: color, feature: feature, place: place, img_url: fileName, category: category});
+    const { data, error } = await supabase.from("lost_items").insert({ name: name, brand: brand, color: color, feature: feature, place: place, img_url: fileName, category: category, remarks: remarks});
 
     if (error) {
       console.error("Supabase insert error:", error);

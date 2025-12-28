@@ -292,7 +292,7 @@
   margin-bottom: 20px;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .container {
     width: 95%;
     max-width: 1400px;
@@ -355,12 +355,64 @@
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .listGrid {
-    grid-template-columns: repeat(2, 1fr);
+  .container {
+    width: 95%;
+    max-width: 1400px;
+    padding: 20px;
+    padding-bottom: 20px;
+    align-items: flex-start;
+  }
+
+  .horizontalControls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .addButton {
+    max-width: 180px;
+    margin: 0;
+    padding: 10px 15px;
+    font-size: 16px;
+  }
+
+  .searchBar {
+    max-width: 450px;
+    margin: 0;
+  }
+
+  .dateFilter {
+    flex-direction: row;
+    align-items: center;
+    max-width: 100%;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .dateFilter label {
+    width: auto;
+    margin-right: 5px;
+  }
+
+  .dateInput {
+    width: 150px;
   }
 
   .hideCompletedButton {
-    margin-bottom: 15px;
+    order: 4;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .listGrid {
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 20px;
+  }
+
+  .modal {
+    max-width: 800px;
   }
 }
 

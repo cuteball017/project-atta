@@ -5,11 +5,11 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { product_id, applicant, return_at} = body;
+  const { product_id, applicant, return_at, remarks } = body;
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("lost_items")
-    .update({ return_at, applicant})
+    .update({ return_at, applicant, remarks })
     .eq("id", product_id);
 
   if (error) {

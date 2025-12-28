@@ -33,10 +33,9 @@
   }
   
   /* Mobile layout (bottom navigation) */
-  @media (max-width: 1023px) {
+  @media (max-width: 767px) {
     .navBar {
       width: 100%;
-      max-width: 500px;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
@@ -61,6 +60,42 @@
       margin-left: 0;
       margin-top: 5px;
       font-size: 12px;
+    }
+  }
+   
+  /* Tablet layout (bottom navigation) */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .navBar {
+      top: 20px;
+      right: 60px; /* Moved left to make room for settings icon */
+      border-radius: 8px;
+      padding: 5px;
+    }
+  
+    .navList {
+      flex-direction: row;
+    }
+  
+    .navItem {
+      margin: 0 3px;
+    }
+  
+    .navLink {
+      flex-direction: row;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      font-size: 17px;
+    }
+
+    .navLink svg,
+    .navLink img {
+      width: 35px;
+      height: 25px;
+    }
+  
+    .navLink:hover {
+      background-color: rgba(0, 0, 0, 0.05);
     }
   }
   

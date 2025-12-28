@@ -21,6 +21,7 @@ interface Product {
   category: string
   applicant?: string | null
   return_at?: string | null
+  remarks?: string | null
 }
 
 export default function Home() {
@@ -47,6 +48,7 @@ export default function Home() {
   const [editPlace, setEditPlace] = useState("")
   const [editCategory, setEditCategory] = useState("")
   const [editImgUrl, setEditImgUrl] = useState("")
+  const [editRemarks, setEditRemarks] = useState("")
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +58,7 @@ export default function Home() {
   const [returnStep, setReturnStep] = useState<1 | 2 | 3>(1)
   const [returnName, setReturnName] = useState("")
   const [returnDate, setReturnDate] = useState("")
+  const [returnRemarks, setReturnRemarks] = useState("")
   const [userChoice, setUserChoice] = useState<"" | "はい" | "いいえ">("")
   const [isReturnCompleted, setIsReturnCompleted] = useState(false)
 
@@ -184,6 +187,17 @@ export default function Home() {
     router.replace(query ? `/?${query}` : "/")
   }, [openProductId, products])
 
+  useEffect(() => {
+    if (selectedProduct !== null || showEditModal || showReturnModal) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [selectedProduct, showEditModal, showReturnModal])
+
   const closeProductDetailModal = () => {
     setSelectedProduct(null)
 
@@ -250,6 +264,7 @@ export default function Home() {
           product_id: selectedProduct.id,
           applicant: returnName,
           return_at: returnDate,
+          remarks: returnRemarks,
         }),
       })
 
@@ -270,6 +285,7 @@ export default function Home() {
     setUserChoice("")
     setReturnName("")
     setReturnDate("")
+    setReturnRemarks("")
     clearSignature()
     setIsReturnCompleted(false)
 
@@ -308,15 +324,13 @@ export default function Home() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">すべて</option>
-                <option value="イヤホン">イヤホン</option>
                 <option value="スマートフォン">スマートフォン</option>
-                <option value="周辺機器">周辺機器</option>
-                <option value="財布">財布</option>
                 <option value="時計">時計</option>
-                <option value="水筒">水筒</option>
                 <option value="文具">文具</option>
-                <option value="かばん">かばん</option>
                 <option value="衣類">衣類</option>
+                <option value="イヤホン">イヤホン</option>
+                <option value="日用品・雑貨">日用品・雑貨</option>
+                <option value="貴金属類">貴金属類</option>
               </select>
             </div>
           </div>
@@ -502,6 +516,12 @@ export default function Home() {
                       <span className={styles.modalLabel}>登録日：</span>
                       {new Date(selectedProduct.created_at).toLocaleDateString()}
                     </div>
+                    {selectedProduct.remarks && (
+                      <div className={styles.modalInfoItem}>
+                        <span className={styles.modalLabel}>備考：</span>
+                        {selectedProduct.remarks}
+                      </div>
+                    )}
                   </div>
 
                   {isReturned(selectedProduct) ? (
@@ -558,6 +578,7 @@ export default function Home() {
                   setEditPlace(selectedProduct.place || "")
                   setEditCategory(selectedProduct.category || "")
                   setEditImgUrl(selectedProduct.img_url || "")
+                  setEditRemarks(selectedProduct.remarks || "")
                   setShowEditConfirm(false)
                   setShowEditModal(true)
                 }}
@@ -606,6 +627,10 @@ export default function Home() {
                 <label>画像ファイル名</label>
                 <input className={styles.editInput} placeholder="例: sample.jpg" type="text" value={editImgUrl} onChange={(e) => setEditImgUrl(e.target.value)} />
               </div>
+              <div className={styles.editField}>
+                <label>備考</label>
+                <textarea className={styles.editInput} placeholder="例）傷あり、バッテリー残量70% など" value={editRemarks} onChange={(e) => setEditRemarks(e.target.value)} rows={3} style={{ width: "100%" }} />
+              </div>
             </div>
             <div className={styles.modalButtons}>
               <button
@@ -624,6 +649,7 @@ export default function Home() {
                         place: editPlace,
                         category: editCategory,
                         img_url: editImgUrl,
+                        remarks: editRemarks,
                       }),
                     })
                     if (!res.ok) {
@@ -631,10 +657,10 @@ export default function Home() {
                       alert(j.error || "更新に失敗しました")
                       return
                     }
+                    setShowEditModal(false)
+                    setSelectedProduct(null)
                     // refresh list and selected product details
                     await fetchProducts()
-                    setSelectedProduct((prev) => prev ? ({ ...prev, name: editName, brand: editBrand, color: editColor, feature: editFeature, place: editPlace, category: editCategory, img_url: editImgUrl }) : prev)
-                    setShowEditModal(false)
                     alert("更新しました")
                   } catch (e) {
                     console.error(e)

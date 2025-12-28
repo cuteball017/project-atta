@@ -33,8 +33,7 @@ function Page({ params }: { params: Params }) {
   const colorRef = useRef<HTMLInputElement>(null);
   const featureRef = useRef<HTMLInputElement>(null);
   const placeRef = useRef<HTMLInputElement>(null);
-  const categoryRef = useRef<HTMLSelectElement>(null);
-
+  const categoryRef = useRef<HTMLSelectElement>(null);  const remarksRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
   /**
@@ -120,11 +119,12 @@ function Page({ params }: { params: Params }) {
     const feature = featureRef.current?.value;
     const place = placeRef.current?.value;
     const category = categoryRef.current?.value;
+    const remarks = remarksRef.current?.value;
 
     const response = await fetch(`/api/register/${params.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, brand, color, feature, place, category }),
+      body: JSON.stringify({ name, brand, color, feature, place, category, remarks }),
     });
 
     if (response.ok) {
@@ -167,7 +167,7 @@ function Page({ params }: { params: Params }) {
         </div>
       )}
 
-      {/* 分析中は「画像 + ローディング」のみを表示 */}
+      {/* 분석중은 「画像 + ローディング」のみを表示 */}
       {isAnalyzing ? (
         <div className={styles.loadingWrap}>
           {imgUrl && (
@@ -186,151 +186,165 @@ function Page({ params }: { params: Params }) {
             <span>画像を解析中です…</span>
           </div>
         </div>
-      ) : (
-        // 分析完了または失敗時：フォームを表示（失敗時は空のまま手入力可能）
-        <form onSubmit={onSubmit} className={styles.form}>
-          {imgUrl && (
-            <div className={styles.imgWrapper}>
-              <Image
-                src={imgUrl}
-                width={240}
-                height={240}
-                alt="解析対象の画像"
-                className={styles.img}
-              />
-            </div>
-          )}
+      ) : null}
 
-          {/* 特徴分析エラー（画像の直下で明示） */}
-          {analysisError && (
-            <div className={styles.inlineError} role="alert" aria-live="assertive">
-              <div>{analysisError}</div>
-              <button
-                type="button"
-                className={styles.retryButtonDark}
-                onClick={handleRetryAnalyze}
-              >
-                特徴分析を再試行
-              </button>
-            </div>
-          )}
-
-          {/* 成功時は要約を表示（任意） */}
-          {!analysisError &&
-            (analysis?.feature ||
-              analysis?.name ||
-              analysis?.brand ||
-              analysis?.color) && (
-              <div className={styles.analysisBox}>
-                <h3 className={styles.analysisTitle}>特徴の分析</h3>
-                <ul className={styles.analysisList}>
-                  {analysis?.name && (
-                    <li>
-                      <strong>名称:</strong> {analysis.name}
-                    </li>
-                  )}
-                  {analysis?.brand && (
-                    <li>
-                      <strong>ブランド:</strong> {analysis.brand}
-                    </li>
-                  )}
-                  {analysis?.color && (
-                    <li>
-                      <strong>色:</strong> {analysis.color}
-                    </li>
-                  )}
-                  {analysis?.feature && (
-                    <li>
-                      <strong>特徴:</strong> {analysis.feature}
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-
-          {/* 入力フォーム */}
-          <div className={styles.inputContainer}>
-            <div className={styles.inputBox}>
-              <label htmlFor="name">名称</label>
-              <input
-                type="text"
-                id="name"
-                ref={nameRef}
-                defaultValue={analysis?.name ?? ""}
-                placeholder="例）ワイヤレスイヤホン"
-                aria-label="名称"
-              />
-            </div>
-            <div className={styles.inputBox}>
-              <label htmlFor="brand">ブランド名</label>
-              <input
-                type="text"
-                id="brand"
-                ref={brandRef}
-                defaultValue={analysis?.brand ?? ""}
-                placeholder="例）Sony"
-                aria-label="ブランド名"
-              />
-            </div>
-            <div className={styles.inputBox}>
-              <label htmlFor="color">色</label>
-              <input
-                type="text"
-                id="color"
-                ref={colorRef}
-                defaultValue={analysis?.color ?? ""}
-                placeholder="例）ブラック"
-                aria-label="色"
-              />
-            </div>
-            <div className={styles.inputBox}>
-              <label htmlFor="feature">特徴</label>
-              <input
-                type="text"
-                id="feature"
-                ref={featureRef}
-                defaultValue={analysis?.feature ?? ""}
-                placeholder="例）ノイズキャンセリング、ケース付属 など"
-                aria-label="特徴"
-              />
-            </div>
-            <div className={styles.inputBox}>
-              <label htmlFor="place">場所</label>
-              <input
-                type="text"
-                id="place"
-                ref={placeRef}
-                placeholder="例）H棟1F エントランス"
-                aria-label="場所"
-              />
-            </div>
-            <div className={styles.inputBox}>
-              <label htmlFor="category">カテゴリー</label>
-              <select
-                id="category"
-                ref={categoryRef}
-                className={styles.selectBox}
-                defaultValue="イヤホン"
-                aria-label="カテゴリー"
-              >
-                <option value="イヤホン">イヤホン</option>
-                <option value="スマートフォン">スマートフォン</option>
-                <option value="周辺機器">周辺機器</option>
-                <option value="財布">財布</option>
-                <option value="時計">時計</option>
-                <option value="水筒">水筒</option>
-                <option value="文具">文具</option>
-                <option value="かばん">かばん</option>
-                <option value="衣類">衣類</option>
-              </select>
-            </div>
+      {/* 画像URL取得エラーやフォームは常に表示（分析中でも） */}
+      <form onSubmit={onSubmit} className={styles.form}>
+        {/* 分析完了後に画像を表示 */}
+        {!isAnalyzing && imgUrl && (
+          <div className={styles.imgWrapper}>
+            <Image
+              src={imgUrl}
+              width={240}
+              height={240}
+              alt="解析対象の画像"
+              className={styles.img}
+            />
           </div>
+        )}
 
+        {/* 特徴分析エラー（画像の直下で明示） */}
+        {analysisError && (
+          <div className={styles.inlineError} role="alert" aria-live="assertive">
+            <div>{analysisError}</div>
+            <button
+              type="button"
+              className={styles.retryButtonDark}
+              onClick={handleRetryAnalyze}
+            >
+              特徴分析を再試行
+            </button>
+          </div>
+        )}
+
+        {/* 成功時は要約を表示（分析完了後のみ） */}
+        {!isAnalyzing &&
+          !analysisError &&
+          (analysis?.feature ||
+            analysis?.name ||
+            analysis?.brand ||
+            analysis?.color) && (
+            <div className={styles.analysisBox}>
+              <h3 className={styles.analysisTitle}>特徴の分析</h3>
+              <ul className={styles.analysisList}>
+                {analysis?.name && (
+                  <li>
+                    <strong>名称:</strong> {analysis.name}
+                  </li>
+                )}
+                {analysis?.brand && (
+                  <li>
+                    <strong>ブランド:</strong> {analysis.brand}
+                  </li>
+                )}
+                {analysis?.color && (
+                  <li>
+                    <strong>色:</strong> {analysis.color}
+                  </li>
+                )}
+                {analysis?.feature && (
+                  <li>
+                    <strong>特徴:</strong> {analysis.feature}
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+
+        {/* 入力フォーム（分析中でも表示） */}
+        <div className={styles.inputContainer}>
+          <div className={styles.inputBox}>
+            <label htmlFor="name">名称</label>
+            <input
+              type="text"
+              id="name"
+              ref={nameRef}
+              defaultValue={analysis?.name ?? ""}
+              placeholder="例）ワイヤレスイヤホン"
+              aria-label="名称"
+            />
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="brand">ブランド名</label>
+            <input
+              type="text"
+              id="brand"
+              ref={brandRef}
+              defaultValue={analysis?.brand ?? ""}
+              placeholder="例）Sony"
+              aria-label="ブランド名"
+            />
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="color">色</label>
+            <input
+              type="text"
+              id="color"
+              ref={colorRef}
+              defaultValue={analysis?.color ?? ""}
+              placeholder="例）ブラック"
+              aria-label="色"
+            />
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="feature">特徴</label>
+            <input
+              type="text"
+              id="feature"
+              ref={featureRef}
+              defaultValue={analysis?.feature ?? ""}
+              placeholder="例）ノイズキャンセリング、ケース付属 など"
+              aria-label="特徴"
+            />
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="place">場所</label>
+            <input
+              type="text"
+              id="place"
+              ref={placeRef}
+              placeholder="例）H棟1F エントランス"
+              aria-label="場所"
+            />
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="category">カテゴリー</label>
+            <select
+              id="category"
+              ref={categoryRef}
+              className={styles.selectBox}
+              defaultValue="イヤホン"
+              aria-label="カテゴリー"
+            >
+              <option value="スマートフォン">スマートフォン</option>
+              <option value="時計">時計</option>
+              <option value="文具">文具</option>
+              <option value="衣類">衣類</option>
+              <option value="イヤホン">イヤホン</option>
+              <option value="日用品・雑貨">日用品・雑貨</option>
+              <option value="貴金属類">貴金属類</option>
+            </select>
+          </div>
+          <div className={styles.inputBox}>
+            <label htmlFor="remarks">備考</label>
+            <textarea
+              id="remarks"
+              ref={remarksRef}
+              placeholder="例）傷あり、バッテリー残量70% など"
+              aria-label="備考"
+              rows={3}
+              style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
+            />
+          </div>
+        </div>
+
+        {/* 登録ボタンは分析完了後にのみ表示 */}
+        {!isAnalyzing && (
           <button className={styles.button} type="submit">
             登録する
           </button>
-        </form>
-      )}
+        )}
+      </form>
     </>
   );
 }

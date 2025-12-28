@@ -17,6 +17,7 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
   const featureRef = useRef<HTMLInputElement>(null);
   const placeRef = useRef<HTMLInputElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
+  const remarksRef = useRef<HTMLTextAreaElement>(null);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +29,7 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
       feature: featureRef.current?.value,
       place: placeRef.current?.value,
       category: categoryRef.current?.value,
+      remarks: remarksRef.current?.value,
     };
 
     let res = await fetch(`/api/register/sample_pic`, {
@@ -45,6 +47,7 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
       if (featureRef.current) featureRef.current.value = "";
       if (placeRef.current) placeRef.current.value = "";
       if (categoryRef.current) categoryRef.current.value = "";
+      if (remarksRef.current) remarksRef.current.value = "";
       if (onSuccess) onSuccess();
     } else {
       alert("登録に失敗しました");
@@ -78,16 +81,24 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
         <div className={styles.inputBox}>
           <label htmlFor="category">カテゴリー</label>
           <select id="category" ref={categoryRef} className={styles.selectBox}>
-            <option value="イヤホン">イヤホン</option>
             <option value="スマートフォン">スマートフォン</option>
-            <option value="周辺機器">周辺機器</option>
-            <option value="財布">財布</option>
             <option value="時計">時計</option>
-            <option value="水筒">水筒</option>
             <option value="文具">文具</option>
-            <option value="かばん">かばん</option>
             <option value="衣類">衣類</option>
+            <option value="イヤホン">イヤホン</option>
+            <option value="日用品・雑貨">日用品・雑貨</option>
+            <option value="貴金属類">貴金属類</option>
           </select>
+        </div>
+        <div className={styles.inputBox}>
+          <label htmlFor="remarks">備考 (オプション)</label>
+          <textarea
+            id="remarks"
+            ref={remarksRef}
+            placeholder="例）傷あり、バッテリー残量70% など"
+            rows={3}
+            style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
+          />
         </div>
       </div>
 

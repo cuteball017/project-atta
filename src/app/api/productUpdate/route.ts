@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from "@/utils/supabaseServer";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, brand, color, feature, place, category, img_url } = body;
+    const { id, name, brand, color, feature, place, category, img_url, remarks } = body;
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
     const supabase = await createServerSupabaseClient();
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     const { error } = await supabase
       .from("lost_items")
-      .update({ name, brand, color, feature, place, category, img_url })
+      .update({ name, brand, color, feature, place, category, img_url, remarks })
       .eq("id", id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
