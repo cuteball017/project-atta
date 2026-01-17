@@ -128,6 +128,26 @@ function Page({ params }: { params: Params }) {
     });
 
     if (response.ok) {
+      // lead_time 保存 (登録完了後)
+      const registrationStartTime = sessionStorage.getItem("registrationStartTime");
+      if (registrationStartTime) {
+        const leadTimeMs = Date.now() - parseInt(registrationStartTime);
+        const leadTimeSeconds = (leadTimeMs / 1000).toFixed(2);
+
+        try {
+          await fetch("/api/evaluation-factor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leadTime: `${leadTimeSeconds}`,
+            }),
+          });
+        } catch (e) {
+          console.error("lead_time 保存失敗:", e);
+        }
+        sessionStorage.removeItem("registrationStartTime");
+      }
+
       alert("登録しました。");
       // 登録完了後はカメラモードで即再登録できるよう戻す
       router.push(`/register?mode=camera`);
@@ -317,6 +337,7 @@ function Page({ params }: { params: Params }) {
               aria-label="カテゴリー"
             >
               <option value="スマートフォン">スマートフォン</option>
+              <option value="周辺機器">周辺機器</option>
               <option value="時計">時計</option>
               <option value="文具">文具</option>
               <option value="衣類">衣類</option>

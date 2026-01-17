@@ -120,7 +120,7 @@ export default function Home() {
     if (hasSearch) {
       const q = searchQuery.toLowerCase()
       base = base.filter((p) =>
-        [p.id, p.name, p.brand, p.color, p.feature, p.place, p.category].some((v) =>
+        [p.id, p.name, p.brand, p.color, p.feature, p.place, p.category, p.remarks].some((v) =>
           String(v).toLowerCase().includes(q),
         ),
       )
@@ -325,6 +325,7 @@ export default function Home() {
               >
                 <option value="">すべて</option>
                 <option value="スマートフォン">スマートフォン</option>
+                <option value="周辺機器">周辺機器</option>
                 <option value="時計">時計</option>
                 <option value="文具">文具</option>
                 <option value="衣類">衣類</option>

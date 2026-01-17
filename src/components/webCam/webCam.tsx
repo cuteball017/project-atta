@@ -42,6 +42,11 @@ const WebCamCapture: React.FC = () => {
       });
       if (response.ok) {
         alert("登録しました");
+
+        // lead_time 測定開始
+        const registrationStartTime = Date.now();
+        sessionStorage.setItem("registrationStartTime", registrationStartTime.toString());
+
         const { data } = await response.json();
         const fileNameWithoutExtension = data.path.replace(/\.jpg$/, ""); // .jpgを除去
         setPicId(fileNameWithoutExtension);

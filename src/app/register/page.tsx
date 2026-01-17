@@ -82,6 +82,7 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
           <label htmlFor="category">カテゴリー</label>
           <select id="category" ref={categoryRef} className={styles.selectBox}>
             <option value="スマートフォン">スマートフォン</option>
+            <option value="周辺機器">周辺機器</option>
             <option value="時計">時計</option>
             <option value="文具">文具</option>
             <option value="衣類">衣類</option>
@@ -91,13 +92,13 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
           </select>
         </div>
         <div className={styles.inputBox}>
-          <label htmlFor="remarks">備考 (オプション)</label>
+          <label htmlFor="remarks">備考</label>
           <textarea
             id="remarks"
             ref={remarksRef}
             placeholder="例）傷あり、バッテリー残量70% など"
             rows={3}
-            style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
+            style={{ width: "85%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
           />
         </div>
       </div>
