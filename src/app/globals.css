@@ -103,6 +103,8 @@ section {
 body {
   line-height: 1;
   height: 100%;
+  overflow-x: hidden;
+  width: 100%;
 }
 ol,
 ul {
@@ -132,6 +134,13 @@ table {
   --color-greyIcon: #343330;
   --color-greyText: #746c70;
   --color-black: #000;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
 html {
@@ -150,11 +159,11 @@ html {
   }
 }
 
-/* Keep mobile restriction for smaller screens */
+/* Keep mobile unrestricted */
 @media (max-width: 1023px) {
   html {
-    max-width: 100%;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
   }
 
   body {

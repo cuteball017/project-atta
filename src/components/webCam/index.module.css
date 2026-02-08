@@ -4,11 +4,12 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background-color: #000;
   display: grid;
   grid-template-rows: 1fr auto;
   overflow: hidden;
+  z-index: 9999;
 }
 
 /* 카메라 뷰포트 - 카메라가 보이는 영역 */
@@ -96,11 +97,12 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background-color: #000;
   display: grid;
   grid-template-rows: 1fr auto;
   overflow: hidden;
+  z-index: 9999;
 }
 
 /* 프리뷰 이미지 영역 */
