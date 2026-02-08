@@ -6,7 +6,7 @@ function Header() {
   return (
     <div className={styles.header}>
       <Link href="/" style={{textDecoration: "none"}}>
-        <h1 className={styles.logo}><a>Atta</a></h1>
+        <h1 className={styles.logo}>Atta</h1>
       </Link>
       <Image src="/gear.svg" alt="gear" width={32} height={32} />
     </div>

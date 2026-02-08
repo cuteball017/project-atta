@@ -16,8 +16,8 @@ export async function POST(req: Request) {
     // 🔹 Geminiモデルに画像と指示文を送信（マルチモーダル入力）
     const result = await gemini.generateContent([
       {
-        // テキスト指示：画像の特徴を日本語で抽出する
-        text: "画像の特徴を分析し、次の形式で結果を日本語で出力してください。内容が英語である場合はカタカナで出力してください。補足や説明文は不要です。\nname:\ncolor:\nbrand:\nfeature:",
+        // テキスト指示：画像の特徴を日本語で抽出する 画像の特徴を分析し、次の形式で結果を日本語で出力してください。内容が英語である場合はカタカナで出力してください。補足や説明文は不要です。\nname:\ncolor:\nbrand:\nfeature:
+        text: "画像分析、特集記号使用禁止、次の形式で結果を日本語で出力、内容が英語である場合はカタカナで出力、補足や説明はfeatureにて名詞で入力。\nname:種類だけの記載(ex:シャツ)\ncolor:\nbrand:\nfeature:",
       },
       {
         // 実際の画像データをBase64として送信

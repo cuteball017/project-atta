@@ -118,7 +118,11 @@ function isPublicPath(p: string) {
     p.startsWith("/auth/") ||          // 기타 인증 관련 경로
     p.startsWith("/sb-auth") ||        // 사용 중인 경우 대비
     p.startsWith("/supabase") ||       // 사용 중인 경우 대비
-    p === "/healthz"                   // 헬스체크 등
+    p === "/healthz" ||           // 헬스체크 
+    p.endsWith(".svg") ||        
+    p.endsWith(".png") ||        
+    p.endsWith(".jpg") ||        
+    p.endsWith(".gif")           
   );
 }
 
@@ -176,53 +180,64 @@ export function middleware(req: NextRequest) {
   // 1) 공개/예외 경로는 통과
   if (isPublicPath(pathname)) return ok(req);
 
-  // 2) 환경변수 미설정 시 보호 비활성 (운영 안전)
-  if (!USER || !PASS) return ok(req);
+  // ====== 베이직 인증 비활성화 (주석 처리됨) ======
+  // // 2) 환경변수 미설정 시 보호 비활성 (운영 안전)
+  // if (!USER || !PASS) return ok(req);
 
-  // 3) 잠금 체크
-  const now = Math.floor(Date.now() / 1000);
-  const lockUntil = Number(req.cookies.get(CK_LOCK)?.value || "0");
-  if (lockUntil && lockUntil > now) {
-    return unauthorized(req, "Too many attempts.", lockUntil - now);
+  // // 3) 잠금 체크
+  // const now = Math.floor(Date.now() / 1000);
+  // const lockUntil = Number(req.cookies.get(CK_LOCK)?.value || "0");
+  // if (lockUntil && lockUntil > now) {
+  //   return unauthorized(req, "Too many attempts.", lockUntil - now);
+  // }
+
+  // // 4) Basic Auth 검사
+  // const auth = req.headers.get("authorization");
+  // if (!auth) return unauthorized(req);
+
+  // const [schemeRaw, encoded] = auth.split(" ");
+  // const scheme = schemeRaw?.toLowerCase();
+  // if (scheme !== "basic" || !encoded) return unauthorized(req);
+
+  // // Base64 디코드 (Edge 런타임: atob 사용)
+  // let decoded = "";
+  // try {
+  //   decoded = atob(encoded);
+  // } catch {
+  //   return unauthorized(req);
+  // }
+
+  // // "username:password" (비번에 ':' 포함 허용)
+  // const idx = decoded.indexOf(":");
+  // if (idx < 0) return unauthorized(req);
+  // const givenUser = decoded.slice(0, idx);
+  // const givenPass = decoded.slice(idx + 1);
+
+  // // 상수시간 비교
+  // const userOk = timingSafeEqual(givenUser, USER);
+  // const passOk = timingSafeEqual(givenPass, PASS);
+
+  //   if (userOk && passOk) {
+  //     // Basic 認証通過後、アプリのログイン（Supabaseセッション）チェック
+  //     const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
+  //     if (!hasSbSession && !isLoginFreePath(pathname)) {
+  //       return redirectToLogin(req);
+  //     }
+
+  //     const res = ok(req);
+  //     clearFailCookies(res);
+  //     return res;
+  //   }
+
+  // return bumpFailAndMaybeLock(req);
+
+  // 베이직 인증 없이 Supabase 세션만 체크
+  const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
+  if (!hasSbSession && !isLoginFreePath(pathname)) {
+    return redirectToLogin(req);
   }
 
-  // 4) Basic Auth 검사
-  const auth = req.headers.get("authorization");
-  if (!auth) return unauthorized(req);
-
-  const [schemeRaw, encoded] = auth.split(" ");
-  const scheme = schemeRaw?.toLowerCase();
-  if (scheme !== "basic" || !encoded) return unauthorized(req);
-
-  // Base64 디코드 (Edge 런타임: atob 사용)
-  let decoded = "";
-  try {
-    decoded = atob(encoded);
-  } catch {
-    return unauthorized(req);
-  }
-
-  // "username:password" (비번에 ':' 포함 허용)
-  const idx = decoded.indexOf(":");
-  if (idx < 0) return unauthorized(req);
-  const givenUser = decoded.slice(0, idx);
-  const givenPass = decoded.slice(idx + 1);
-
-  // 상수시간 비교
-  const userOk = timingSafeEqual(givenUser, USER);
-  const passOk = timingSafeEqual(givenPass, PASS);
-
-    if (userOk && passOk) {
-      // Basic 認証通過後、アプリのログイン（Supabaseセッション）チェック
-      const hasSbSession = Boolean(req.cookies.get("sb-access-token")?.value);
-      if (!hasSbSession && !isLoginFreePath(pathname)) {
-        return redirectToLogin(req);
-      }
-
-      const res = ok(req);
-      clearFailCookies(res);
-      return res;
-    }  return bumpFailAndMaybeLock(req);
+  return ok(req);
 }
 
 /** ====== 매처 ====== */

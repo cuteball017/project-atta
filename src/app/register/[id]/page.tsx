@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import WebcamCapture from "@/components/webCam/webCam";
 import styles from "./index.module.css";
 
 interface Params {
@@ -18,6 +19,9 @@ type Analysis = {
 function Page({ params }: { params: Params }) {
   // 画像URL
   const [imgUrl, setImgUrl] = useState<string | null>(null);
+  // 追加写真（1枚のみ）
+  const [additionalImage, setAdditionalImage] = useState<string | null>(null);
+  const [showAdditionalCameraModal, setShowAdditionalCameraModal] = useState(false);
   // 画像URL取得のエラー（上部バナーで表示）
   const [imageError, setImageError] = useState<string | null>(null);
   // Gemini の特徴分析エラー（画像の下で表示）
@@ -100,12 +104,17 @@ function Page({ params }: { params: Params }) {
       // 成否に関わらずローディングは終了
       setIsAnalyzing(false);
     }
-  }, []);
+  }, [params.id]);
 
-  // 初期マウント時に画像URL取得を走らせる
+  // 初期マウント時に画像URL取得を走らせる（Strict Mode での重複実行を防ぎ、ID変更時は新規読込）
+  const lastInitializedIdRef = useRef<string | null>(null);
   useEffect(() => {
-    fetchImageData();
-  }, [fetchImageData]);
+    // 異なるIDの場合のみ実行（Strict Mode での重複を防ぎながら、ID変更時は再実行）
+    if (lastInitializedIdRef.current !== params.id) {
+      lastInitializedIdRef.current = params.id;
+      fetchImageData();
+    }
+  }, [params.id, fetchImageData]);
 
   /**
    * 登録処理
@@ -124,7 +133,10 @@ function Page({ params }: { params: Params }) {
     const response = await fetch(`/api/register/${params.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, brand, color, feature, place, category, remarks }),
+      body: JSON.stringify({ 
+        name, brand, color, feature, place, category, remarks,
+        additionalImage: additionalImage
+      }),
     });
 
     if (response.ok) {
@@ -155,6 +167,21 @@ function Page({ params }: { params: Params }) {
       alert("登録に失敗しました。");
       // エラー時は画面に留まり再試行・編集できるようする
     }
+  };
+
+  /**
+   * 追加写真の処理
+   */
+  const handleAdditionalImageCapture = (imageDataUrl: string) => {
+    setAdditionalImage(imageDataUrl);
+    setShowAdditionalCameraModal(false);
+  };
+
+  /**
+   * 追加写真削除
+   */
+  const removeAdditionalImage = () => {
+    setAdditionalImage(null);
   };
 
   /**
@@ -357,7 +384,53 @@ function Page({ params }: { params: Params }) {
               style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
             />
           </div>
+
+          {/* 追加写真セクション */}
+          <div className={styles.additionalImagesSection}>
+            <div className={styles.additionalImagesHeader}>
+              <label>画像の追加</label>
+              {!additionalImage && (
+                <button
+                  type="button"
+                  className={styles.addImageButton}
+                  onClick={() => setShowAdditionalCameraModal(true)}
+                  aria-label="写真を追加"
+                >
+                  +
+                </button>
+              )}
+            </div>
+
+            {/* 追加写真プレビュー */}
+            {additionalImage && (
+              <div className={styles.additionalImageWrapper}>
+                <img
+                  src={additionalImage}
+                  alt="追加写真"
+                  className={styles.additionalImage}
+                />
+                <button
+                  type="button"
+                  className={styles.deleteImageButton}
+                  onClick={() => removeAdditionalImage()}
+                  aria-label="写真を削除"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* 追加カメラモーダル */}
+        {showAdditionalCameraModal && (
+          <div className={styles.cameraModalOverlay}>
+            <WebcamCapture
+              onCapture={handleAdditionalImageCapture}
+              onBack={() => setShowAdditionalCameraModal(false)}
+            />
+          </div>
+        )}
 
         {/* 登録ボタンは分析完了後にのみ表示 */}
         {!isAnalyzing && (

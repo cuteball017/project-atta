@@ -1,4 +1,190 @@
+/* 카메라 컨테이너 - 전체 화면 */
+.cameraContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 카메라 뷰포트 - 카메라가 보이는 영역 */
+.cameraViewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Webcam 비디오 */
+.webcam {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+/* 하단 컨트롤 영역 */
+.cameraControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  min-height: 120px;
+  flex-shrink: 0;
+}
+
+/* 뒤로가기 버튼 */
+.backButton {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.backButton:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 촬영 버튼 - 휴대폰 스타일 */
+.captureButton {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: white;
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.captureButton:active {
+  transform: scale(0.95);
+}
+
+.captureButtonInner {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: white;
+}
+
+/* 플레이스홀더 (좌우 대칭을 위한 빈 공간) */
+.placeholder {
+  width: 50px;
+  height: 50px;
+}
+
+/* 프리뷰 컨테이너 */
+.previewContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 프리뷰 이미지 영역 */
+.previewImage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.capturedImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* 프리뷰 컨트롤 버튼 */
+.previewControls {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  min-height: 100px;
+  align-items: center;
+  justify-content: center;
+}
+
+.retakeButton,
+.registerButton {
+  flex: 1;
+  max-width: 180px;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.retakeButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+}
+
+.retakeButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.registerButton {
+  background-color: #ff69b4;
+  color: white;
+}
+
+.registerButton:hover {
+  background-color: #ff1493;
+  box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+}
+
+/* 기존 스타일 (하위 호환성) */
 .container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.button {
+  padding: 10px 20px;
+  border: 1px solid #ff69b4;
+  border-radius: 5px;
+  background-color: #ff69b4;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+
+
+
+
+
+/* .container {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -28,9 +214,9 @@
 
 .button {
   padding: 10px 20px;
-  border: 1px solid #ff69b4; /* ピンク色のボーダー */
+  border: 1px solid #ff69b4; 
   border-radius: 5px;
-  background-color: #ff69b4; /* ピンク色の背景 */
+  background-color: #ff69b4; 
   color: #fff;
   font-size: 16px;
   cursor: pointer;
@@ -38,12 +224,12 @@
 }
 
 .button:hover {
-  background-color: #ff1493; /* 濃いピンク色の背景 */
-  border-color: #ff1493; /* 濃いピンク色のボーダー */
-  box-shadow: 0 0 5px rgba(255, 20, 147, 0.5); /* 濃いピンク色のシャドウ */
+  background-color: #ff1493; 
+  border-color: #ff1493; 
+  box-shadow: 0 0 5px rgba(255, 20, 147, 0.5); 
 }
 
 .button:focus {
   outline: none;
-  box-shadow: 0 0 5px rgba(255, 105, 180, 0.5); /* ピンク色のシャドウ */
-}
+  box-shadow: 0 0 5px rgba(255, 105, 180, 0.5); 
+} */

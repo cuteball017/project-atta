@@ -105,7 +105,7 @@ function ManualRegisterForm({ onBack, onSuccess }: { onBack: () => void; onSucce
 
       <div className={styles.actionsRow}>
         <button className={styles.button} type="submit">
-          Register
+          登録
         </button>
         <button
           type="button"
@@ -129,16 +129,7 @@ function Page() {
     // 사진으로부터 등록: 기존 흐름(WebcamCapture) 유지
     return (
       <div>
-        <WebcamCapture />
-        <div className={styles.centeredSmall}>
-          <button
-            className={styles.secondaryButton}
-            type="button"
-            onClick={() => setMode('choice')}
-          >
-            戻る
-          </button>
-        </div>
+        <WebcamCapture onBack={() => setMode('choice')} />
       </div>
     )
   }
