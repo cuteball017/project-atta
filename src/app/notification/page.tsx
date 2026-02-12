@@ -403,7 +403,7 @@ export default function NotificationPage() {
       )}
 
       {showRequestModal && selectedProduct && (
-        <div className={styles.modalOverlay} onClick={() => setShowRequestModal(false)}>
+        <div className={styles.modalOverlay} onClick={() => { setShowRequestModal(false); setSelectedProduct(null); }}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h2>申請追加</h2>
             <Image
@@ -443,7 +443,7 @@ export default function NotificationPage() {
               <button className={styles.modalButton} onClick={handleRegisterRequest}>
                 登録
               </button>
-              <button className={styles.modalButton} onClick={() => setShowRequestModal(false)}>
+              <button className={styles.modalButton} onClick={() => { setShowRequestModal(false); setSelectedProduct(null); }}>
                 キャンセル
               </button>
             </div>
